@@ -1,7 +1,7 @@
 package com.example.ecommerce_order_tracking_system.entity.user;
 
-import com.example.ecommerce_order_tracking_system.common.UserGender;
-import com.example.ecommerce_order_tracking_system.common.UserStatus;
+import com.example.ecommerce_order_tracking_system.common.enums.UserGender;
+import com.example.ecommerce_order_tracking_system.common.enums.UserStatus;
 import com.example.ecommerce_order_tracking_system.entity.order.Carts;
 import com.example.ecommerce_order_tracking_system.entity.order.EmailNotifications;
 import com.example.ecommerce_order_tracking_system.entity.order.Orders;
@@ -12,15 +12,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.UuidGenerator;
 import org.jspecify.annotations.NonNull;
 
 import java.io.Serializable;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @AllArgsConstructor
@@ -32,6 +31,7 @@ public class Users implements Serializable {
 
     @Id
     @Column(name = "id", nullable = false, length = 36)
+    @UuidGenerator
     private String id;
 
     @Column(name = "username", nullable = false, length = 50)
@@ -56,6 +56,7 @@ public class Users implements Serializable {
     private LocalDate dateOfBirth;
 
     @Column(name = "gender")
+    @Enumerated(EnumType.STRING)
     private UserGender gender;
 
     @ColumnDefault("'ACTIVE'")

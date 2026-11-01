@@ -1,6 +1,6 @@
 package com.example.ecommerce_order_tracking_system.entity.order;
 
-import com.example.ecommerce_order_tracking_system.common.UserVoucherStatus;
+import com.example.ecommerce_order_tracking_system.common.enums.UserVoucherStatus;
 import com.example.ecommerce_order_tracking_system.entity.user.Users;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

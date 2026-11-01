@@ -1,8 +1,8 @@
 package com.example.ecommerce_order_tracking_system.entity.order;
 
-import com.example.ecommerce_order_tracking_system.common.RequestStatus;
-import com.example.ecommerce_order_tracking_system.common.ReturnRequestType;
-import com.example.ecommerce_order_tracking_system.common.ReturnShippingStatus;
+import com.example.ecommerce_order_tracking_system.common.enums.RequestStatus;
+import com.example.ecommerce_order_tracking_system.common.enums.ReturnRequestType;
+import com.example.ecommerce_order_tracking_system.common.enums.ReturnShippingStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -45,3 +45,5 @@ logs/
 application-local.yml
 application-local.yaml
 application-local.properties
+
+src/main/resources/application.yaml

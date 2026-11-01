@@ -1,6 +1,6 @@
 package com.example.ecommerce_order_tracking_system.entity.order;
 
-import com.example.ecommerce_order_tracking_system.common.PaymentStatus;
+import com.example.ecommerce_order_tracking_system.common.enums.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,9 +13,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @AllArgsConstructor

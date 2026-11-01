@@ -1,6 +1,6 @@
 package com.example.ecommerce_order_tracking_system.entity.user;
 
-import com.example.ecommerce_order_tracking_system.common.UserStatus;
+import com.example.ecommerce_order_tracking_system.common.enums.UserStatus;
 import com.example.ecommerce_order_tracking_system.entity.order.Orders;
 import com.example.ecommerce_order_tracking_system.entity.product.Products;
 import jakarta.persistence.*;
@@ -14,9 +14,7 @@ import org.jspecify.annotations.NonNull;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @AllArgsConstructor

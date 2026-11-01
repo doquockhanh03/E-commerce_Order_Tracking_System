@@ -1,7 +1,7 @@
 package com.example.ecommerce_order_tracking_system.entity.order;
 
-import com.example.ecommerce_order_tracking_system.common.EmailStatus;
-import com.example.ecommerce_order_tracking_system.common.OrderStatus;
+import com.example.ecommerce_order_tracking_system.common.enums.EmailStatus;
+import com.example.ecommerce_order_tracking_system.common.enums.OrderStatus;
 import com.example.ecommerce_order_tracking_system.entity.user.Users;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
