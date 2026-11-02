@@ -1,5 +1,6 @@
 package com.example.ecommerce_order_tracking_system.dto.response;
 
+import com.example.ecommerce_order_tracking_system.entity.user.UserRoles;
 import lombok.Getter;
 import lombok.Setter;
 

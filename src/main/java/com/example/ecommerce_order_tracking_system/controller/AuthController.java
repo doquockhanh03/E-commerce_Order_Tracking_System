@@ -2,7 +2,7 @@ package com.example.ecommerce_order_tracking_system.controller;
 
 import com.example.ecommerce_order_tracking_system.dto.request.RegisterUserDto;
 import com.example.ecommerce_order_tracking_system.dto.response.UserResponseDto;
-import com.example.ecommerce_order_tracking_system.service.UsersService;
+import com.example.ecommerce_order_tracking_system.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,9 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/auth")
-public class UsersController {
+public class AuthController {
 
-    private final UsersService usersService;
+    private final AuthService usersService;
 
     @PostMapping("/register")
     public ResponseEntity<UserResponseDto> register(@Valid @RequestBody RegisterUserDto request){
