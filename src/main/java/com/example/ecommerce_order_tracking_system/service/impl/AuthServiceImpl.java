@@ -19,6 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -83,6 +84,21 @@ public class AuthServiceImpl implements AuthService {
 
         UserResponseDto userResponseDto = modelMapperConfig.modelMapper().map(users, UserResponseDto.class);
         userResponseDto.setFullName(request.getFirstName() + " " + request.getLastName());
+        return userResponseDto;
+    }
+
+    @Override
+    public UserResponseDto login(String username) {
+        Optional<Users> optionalUsers = usersRepo.findByUsername(username);
+        if (optionalUsers.isEmpty()) {
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND, "user not found!");
+        }
+
+        Users users = optionalUsers.get();
+
+        UserResponseDto userResponseDto = modelMapperConfig.modelMapper().map(users, UserResponseDto.class);
+        userResponseDto.setFullName(users.getFirstName() + " " + users.getLastName());
+
         return userResponseDto;
     }
 }

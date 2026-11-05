@@ -26,6 +26,7 @@ public class UserVouchers implements Serializable {
 
     @ColumnDefault("'UNUSED'")
     @Column(name = "status")
+    @Enumerated(EnumType.STRING)
     private UserVoucherStatus status;
 
     @Column(name = "created_at")
