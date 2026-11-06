@@ -20,7 +20,7 @@ public class DiscountController {
 
     @GetMapping("/available")
     public ResponseEntity<ListUserDiscountResDto> getUserDiscounts(Authentication authentication) {
-        String username = authentication.getName();
-        return ResponseEntity.ok(discountService.getUserDiscount(username));
+
+        return ResponseEntity.ok(discountService.getUserDiscount(authentication.getName()));
     }
 }

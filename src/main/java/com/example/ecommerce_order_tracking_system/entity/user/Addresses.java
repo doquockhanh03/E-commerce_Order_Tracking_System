@@ -1,6 +1,7 @@
 package com.example.ecommerce_order_tracking_system.entity.user;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -55,6 +56,11 @@ public class Addresses implements Serializable {
     @ColumnDefault("0")
     @Column(name = "deleted")
     private Boolean deleted;
+
+    @NotNull
+    @ColumnDefault("0")
+    @Column(name = "is_default", nullable = false)
+    private Boolean isDefault;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)

@@ -1,5 +1,6 @@
 package com.example.ecommerce_order_tracking_system.entity.order;
 
+import com.example.ecommerce_order_tracking_system.common.enums.ShippingZone;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -24,7 +25,8 @@ public class ShippingConfigs implements Serializable {
     private String id;
 
     @Column(name = "zone_name", nullable = false)
-    private String zoneName;
+    @Enumerated(EnumType.STRING)
+    private ShippingZone zoneName;
 
     @Column(name = "min_weight", nullable = false, precision = 10, scale = 2)
     private BigDecimal minWeight;

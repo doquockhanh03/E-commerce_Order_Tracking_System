@@ -19,17 +19,14 @@ public class CartsController {
 
     @GetMapping("/detail")
     public ResponseEntity<CartsResDto> getCartDetail (Authentication authentication){
-        String username = authentication.getName();
-
-        return ResponseEntity.ok(cartsService.getCartDetail(username));
+        return ResponseEntity.ok(cartsService.getCartDetail(authentication.getName()));
     }
 
     @PatchMapping("/item/quantity/{cartItemId}")
     public ResponseEntity<CartsResDto> updateCartItemQuantity (Authentication authentication,
                                                                @PathVariable String cartItemId,
                                                                @RequestBody CartItemActionReqDto action){
-        String username = authentication.getName();
-        return ResponseEntity.ok(cartsService.updateCartItemQuantity(username, cartItemId, action.getAction()));
+        return ResponseEntity.ok(cartsService.updateCartItemQuantity(authentication.getName(), cartItemId, action.getAction()));
 
     }
 }

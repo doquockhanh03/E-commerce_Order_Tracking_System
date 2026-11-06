@@ -60,7 +60,7 @@ public class CartsServiceImpl implements CartsService {
         }
 
         if(!cartItemsOptional.get().getCart().getId().equals(cartsOptional.get().getId())){
-            throw new RuntimeException("Cart item ");
+            throw new RuntimeException("Cart item not match!");
         }
 
         int quantityInStock = cartItemsOptional.get().getProductVariant().getInventory().getQuantityInStock();
