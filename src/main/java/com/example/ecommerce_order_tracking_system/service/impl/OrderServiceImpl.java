@@ -1,6 +1,9 @@
 package com.example.ecommerce_order_tracking_system.service.impl;
 
+import com.example.ecommerce_order_tracking_system.common.enums.DiscountType;
 import com.example.ecommerce_order_tracking_system.common.enums.ShippingZone;
+import com.example.ecommerce_order_tracking_system.common.enums.UserVoucherStatus;
+import com.example.ecommerce_order_tracking_system.common.enums.VoucherStatus;
 import com.example.ecommerce_order_tracking_system.dto.response.CartItemsResDto;
 import com.example.ecommerce_order_tracking_system.dto.response.OrderSummaryResDto;
 import com.example.ecommerce_order_tracking_system.entity.order.*;
@@ -10,6 +13,7 @@ import com.example.ecommerce_order_tracking_system.entity.user.Users;
 import com.example.ecommerce_order_tracking_system.repository.order.CarriersRepo;
 import com.example.ecommerce_order_tracking_system.repository.order.CartsRepo;
 import com.example.ecommerce_order_tracking_system.repository.order.ShippingConfigsRepo;
+import com.example.ecommerce_order_tracking_system.repository.order.UserVouchersRepo;
 import com.example.ecommerce_order_tracking_system.repository.user.UsersRepo;
 import com.example.ecommerce_order_tracking_system.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +21,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -30,10 +35,10 @@ public class OrderServiceImpl implements OrderService {
 
     private final CarriersRepo carriersRepo;
 
-    private final ShippingConfigsRepo shippingConfigsRepo;
+    private final UserVouchersRepo userVouchersRepo;
 
     @Override
-    public OrderSummaryResDto getOrderSummary(String username) {
+    public OrderSummaryResDto getOrderSummary(String username, String discountVoucher, String shippingVoucher) {
         Optional<Users> user = usersRepo.findByUsername(username);
         if(user.isEmpty()){
             throw new RuntimeException("user not found!");
@@ -41,18 +46,16 @@ public class OrderServiceImpl implements OrderService {
         String userId = user.get().getId();
 
         List<CartItems> cartItems = new ArrayList<>();
-        Vouchers discountVoucher = null;
-        Vouchers shippingVoucher = null;
 
         Optional<Carts> cartsOptional = cartsRepo.getByUserId(userId);
         if (cartsOptional.isPresent()) {
             cartItems = cartsOptional.get().getCartItems();
         }
 
-        return calculateOrderSummary(userId,cartItems, discountVoucher, shippingVoucher);
+        return calculateOrderSummary(userId, cartItems, discountVoucher, shippingVoucher);
     }
 
-    public OrderSummaryResDto calculateOrderSummary(String userId, List<CartItems> items, Vouchers discountVoucher, Vouchers shippingVoucher){
+    public OrderSummaryResDto calculateOrderSummary(String userId, List<CartItems> items, String discountVoucherId, String shippingVoucherId){
         BigDecimal subTotal = BigDecimal.ZERO;
         BigDecimal bulkDiscount = BigDecimal.ZERO;
         BigDecimal expeditedShipping = BigDecimal.ZERO;
@@ -64,9 +67,48 @@ public class OrderServiceImpl implements OrderService {
             subTotal = subTotal.add(productVariants.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())));
         }
 
+        expeditedShipping = expeditedShipping.add(calcShipping(items, userId));
+
+        bulkDiscount = bulkDiscount.add(calcBulkDiscount(userId, discountVoucherId, subTotal);)
+
     }
 
-    public BigDecimal calcShipping (List<CartItems> items, String userId, String carrierId){
+    public BigDecimal calcBulkDiscount (String userId,
+                                        String discountVoucherId, BigDecimal subTotal){
+
+        Optional<UserVouchers> vouchers = userVouchersRepo.findByUserIdAndVoucherId(userId, discountVoucherId);
+
+        BigDecimal discountVal = BigDecimal.ZERO;
+        BigDecimal bulkDiscount = BigDecimal.ZERO;
+        if(vouchers.isPresent()){
+            if(Boolean.FALSE.equals(vouchers.get().getDeleted()) && vouchers.get().getStatus() == UserVoucherStatus.UNUSED){
+                if(vouchers.get().getVoucher().getMinOrderAmount().compareTo(subTotal) <= 0
+                        && (vouchers.get().getVoucher().getUsageLimit() - vouchers.get().getVoucher().getUsageCount()) > 0
+                        && vouchers.get().getVoucher().getStatus() == VoucherStatus.ACTIVE){
+
+                    discountVal = discountVal.add(vouchers.get().getVoucher().getDiscountValue());
+
+                    if(vouchers.get().getVoucher().getDiscountType() == DiscountType.FIXED_AMOUNT){
+                        bulkDiscount = discountVal.min(subTotal);
+
+                    }else if (vouchers.get().getVoucher().getDiscountType() == DiscountType.PERCENTAGE){
+                        BigDecimal temp = subTotal
+                                .multiply(discountVal)
+                                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+
+                        if (temp.compareTo(vouchers.get().getVoucher().getMaxDiscountAmount()) > 0) {
+                            bulkDiscount = vouchers.get().getVoucher().getMaxDiscountAmount();
+                        }else {
+                            bulkDiscount = temp.min(subTotal);
+                        }
+                    }
+                }
+            }
+        }
+        return bulkDiscount;
+    }
+
+    public BigDecimal calcShipping (List<CartItems> items, String userId){
         Optional<Users> usersOptional = usersRepo.findById(userId);
         String address = "";
         if(usersOptional.isPresent()){
@@ -76,6 +118,8 @@ public class OrderServiceImpl implements OrderService {
                     break;
                 }
             }
+        }else {
+            throw new RuntimeException("address not found!");
         }
 
         ShippingZone zone;
@@ -85,15 +129,15 @@ public class OrderServiceImpl implements OrderService {
             zone = ShippingZone.LIEN_TINH;
         }
 
-        List<ShippingConfigs> configs = carriersRepo.findByMinFee(zone);
+        ShippingConfigs configs = carriersRepo.findByMinFee(zone);
 
-        BigDecimal minShippingFee = configs.getFirst().getPrice();
-
-        for(ShippingConfigs config: configs){
-            if(config.getPrice().compareTo(minShippingFee) < 0){
-                minShippingFee = config.getPrice();
-            }
+        BigDecimal shippingFee = BigDecimal.ZERO;
+        for (CartItems item : items){
+            ProductVariants productVariants = item.getProductVariant();
+            shippingFee = shippingFee.add(productVariants.getWeight().multiply(configs.getPrice()))
+                    .multiply(BigDecimal.valueOf(item.getQuantity()));
         }
-        return minShippingFee;
+
+        return shippingFee;
     }
 }

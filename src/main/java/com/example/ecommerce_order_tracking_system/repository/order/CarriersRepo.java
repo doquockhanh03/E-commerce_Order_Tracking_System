@@ -16,5 +16,5 @@ public interface CarriersRepo extends JpaRepository<Carriers, String> {
     SELECT s FROM ShippingConfigs s WHERE s.zoneName = :shippingZone
       AND s.price = ( SELECT MIN(s2.price) FROM ShippingConfigs s2
       WHERE s2.zoneName = :shippingZone)""")
-    List<ShippingConfigs> findByMinFee(@Param("shippingZone") ShippingZone shippingZone);
+    ShippingConfigs findByMinFee(@Param("shippingZone") ShippingZone shippingZone);
 }

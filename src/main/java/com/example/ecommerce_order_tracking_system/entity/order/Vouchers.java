@@ -1,5 +1,6 @@
 package com.example.ecommerce_order_tracking_system.entity.order;
 
+import com.example.ecommerce_order_tracking_system.common.enums.DiscountType;
 import com.example.ecommerce_order_tracking_system.common.enums.VoucherStatus;
 import com.example.ecommerce_order_tracking_system.common.enums.VoucherType;
 import jakarta.persistence.*;
@@ -53,6 +54,14 @@ public class Vouchers implements Serializable {
 
     @Column(name = "usage_count", nullable = false)
     private Integer usageCount;
+
+    @Lob
+    @Column(name = "discount_type")
+    @Enumerated(EnumType.STRING)
+    private DiscountType discountType;
+
+    @Column(name = "max_discount_amount", precision = 15, scale = 2)
+    private BigDecimal maxDiscountAmount;
 
     @Column(name = "started_at")
     private Instant startedAt;
