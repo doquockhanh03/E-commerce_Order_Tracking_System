@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class OrderSummaryResDto {
+public class PricingSummaryResDto {
     private BigDecimal subTotal;
 
     private BigDecimal bulkDiscount;

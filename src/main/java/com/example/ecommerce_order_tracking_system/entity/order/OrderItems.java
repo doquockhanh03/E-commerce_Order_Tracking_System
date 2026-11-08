@@ -17,7 +17,7 @@ import java.time.Instant;
 @NoArgsConstructor
 @Setter
 @Getter
-@Table(name = "orderItems")
+@Table(name = "order_items")
 public class OrderItems implements Serializable {
 
     @Id
@@ -38,15 +38,6 @@ public class OrderItems implements Serializable {
 
     @Column(name = "unit_price", precision = 15, scale = 2)
     private BigDecimal unitPrice;
-
-    @Column(name = "discount_amount", precision = 15, scale = 2)
-    private BigDecimal discountAmount;
-
-    @Column(name = "subtotal", precision = 15, scale = 2)
-    private BigDecimal subtotal;
-
-    @Column(name = "total_amount", precision = 15, scale = 2)
-    private BigDecimal totalAmount;
 
     @Column(name = "created_at")
     private Instant createdAt;
