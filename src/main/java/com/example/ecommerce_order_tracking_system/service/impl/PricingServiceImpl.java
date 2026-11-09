@@ -57,15 +57,21 @@ public class PricingServiceImpl implements PricingService {
         BigDecimal totalAmount = BigDecimal.ZERO;
 
         for (CartItems item : items) {
-            ProductVariants productVariants = item.getProductVariant();
-            subTotal = subTotal.add(productVariants.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())));
+            if (Boolean.FALSE.equals(item.getDeleted())) {
+                ProductVariants productVariants = item.getProductVariant();
+                subTotal = subTotal.add(productVariants.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())));
+            }
         }
 
         expeditedShipping = expeditedShipping.add(calcShipping(items, userId));
 
-        bulkDiscount = bulkDiscount.add(calcBulkDiscount(userId, discountVoucherId, subTotal));
+        if(!discountVoucherId.isBlank()){
+            bulkDiscount = bulkDiscount.add(calcBulkDiscount(userId, discountVoucherId, subTotal));
+        }
 
-        shippingDiscount = shippingDiscount.add(calcShippingDiscount(userId, shippingVoucherId, expeditedShipping, subTotal));
+        if(!shippingVoucherId.isBlank()){
+            shippingDiscount = shippingDiscount.add(calcShippingDiscount(userId, shippingVoucherId, expeditedShipping, subTotal));
+        }
 
         totalAmount = subTotal.subtract(bulkDiscount).add(expeditedShipping).subtract(shippingDiscount);
 
@@ -155,9 +161,13 @@ public class PricingServiceImpl implements PricingService {
                     break;
                 }
             }
-        } else {
-            throw new RuntimeException("address not found!");
+
+            if(address.isBlank()){
+                throw new RuntimeException("address not found!");
+            }
         }
+
+
 
         ShippingZone zone;
         if (address.equalsIgnoreCase("Ha Noi") || address.equalsIgnoreCase("Ho Chi Minh")) {

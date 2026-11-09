@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.query.Order;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -19,27 +20,8 @@ import java.util.List;
 @NoArgsConstructor
 public class OrderResDto {
 
-    private List<OrderItemResDto> orderItems;
-
-    private String address;
-
-    private BigDecimal subTotal;
-
-    private BigDecimal discountAmount;
-
-    private BigDecimal shippingFee;
-
-    private BigDecimal ShippingDiscountAmount;
+    private List<String> orderIds;
 
     private BigDecimal totalAmount;
 
-    private String trackingNumber;
-
-    private TrackingLogResDto trackingLogs;
-
-    private PaymentResDto payments;
-
-    private String note;
-
-    private Instant estimatedDelivery;
 }

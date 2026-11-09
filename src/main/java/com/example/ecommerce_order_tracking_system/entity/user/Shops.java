@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.UuidGenerator;
 import org.jspecify.annotations.NonNull;
 
 import java.io.Serializable;
@@ -25,6 +26,7 @@ import java.util.List;
 public class Shops implements Serializable {
 
     @Id
+    @UuidGenerator
     @Column(name = "id", nullable = false, length = 36)
     private String id;
 

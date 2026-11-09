@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -18,6 +19,7 @@ import java.time.Instant;
 @Table(name = "inventories")
 public class Inventories implements Serializable {
     @Id
+    @UuidGenerator
     @Column(name = "id", nullable = false, length = 36)
     private String id;
 

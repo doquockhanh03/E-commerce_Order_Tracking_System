@@ -17,7 +17,9 @@ public class CreateOrderReqDto {
 
     private String carrierId;
 
+    private String addressId;
+
     private String note;
 
-    private String paymentId;
+    private String paymentMethodId;
 }
