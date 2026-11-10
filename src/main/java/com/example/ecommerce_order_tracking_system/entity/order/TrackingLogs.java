@@ -32,6 +32,7 @@ public class TrackingLogs implements Serializable {
     private String locationName;
 
     @Column(name = "status")
+    @Enumerated(EnumType.STRING)
     private OrderStatus status;
 
     @Column(name = "created_at")

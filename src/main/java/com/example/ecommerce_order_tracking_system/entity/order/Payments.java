@@ -42,6 +42,7 @@ public class Payments implements Serializable {
     private Instant paidAt;
 
     @Column(name = "status")
+    @Enumerated(EnumType.STRING)
     private PaymentStatus status;
 
     @Column(name = "created_at")

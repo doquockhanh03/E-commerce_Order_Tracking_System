@@ -9,6 +9,7 @@ import com.example.ecommerce_order_tracking_system.entity.user.Users;
 import com.example.ecommerce_order_tracking_system.repository.order.CarriersRepo;
 import com.example.ecommerce_order_tracking_system.repository.order.CartsRepo;
 import com.example.ecommerce_order_tracking_system.repository.order.UserVouchersRepo;
+import com.example.ecommerce_order_tracking_system.repository.user.AddressesRepo;
 import com.example.ecommerce_order_tracking_system.repository.user.UsersRepo;
 import com.example.ecommerce_order_tracking_system.service.PricingService;
 import lombok.RequiredArgsConstructor;
@@ -31,13 +32,28 @@ public class PricingServiceImpl implements PricingService {
 
     private final UserVouchersRepo userVouchersRepo;
 
+    private final AddressesRepo addressesRepo;
+
     @Override
-    public PricingSummaryResDto getOrderSummary(String username, String discountVoucherId, String shippingVoucherId) {
+    public PricingSummaryResDto getOrderSummary(String username, String addressId, String discountVoucherId, String shippingVoucherId) {
         Optional<Users> user = usersRepo.findByUsername(username);
         if (user.isEmpty()) {
             throw new RuntimeException("user not found!");
         }
         String userId = user.get().getId();
+
+        Optional<Addresses> addresses;
+        if (addressId != null && !addressId.isBlank()) {
+            addresses = addressesRepo.findByIdAndUserId(addressId, userId);
+            if(addresses.isEmpty()){
+                throw new RuntimeException("Address not found!");
+            }
+        } else {
+            addresses = addressesRepo.findFirstByUserIdAndIsDefaultTrueAndDeletedFalse(userId);
+            if(addresses.isEmpty()){
+                throw new RuntimeException("Address not found!");
+            }
+        }
 
         List<CartItems> cartItems = new ArrayList<>();
 
@@ -46,15 +62,17 @@ public class PricingServiceImpl implements PricingService {
             cartItems = cartsOptional.get().getCartItems();
         }
 
-        return calculateOrderSummary(userId, cartItems, discountVoucherId, shippingVoucherId);
+        return calculateOrderSummary(userId, cartItems, addresses.get().getProvinceCity(), discountVoucherId, shippingVoucherId, null);
     }
 
-    public PricingSummaryResDto calculateOrderSummary(String userId, List<CartItems> items, String discountVoucherId, String shippingVoucherId) {
+    public PricingSummaryResDto calculateOrderSummary(String userId, List<CartItems> items, String provinceCity, String discountVoucherId, String shippingVoucherId, BigDecimal minOrderSubTotal) {
         BigDecimal subTotal = BigDecimal.ZERO;
         BigDecimal bulkDiscount = BigDecimal.ZERO;
         BigDecimal expeditedShipping = BigDecimal.ZERO;
         BigDecimal shippingDiscount = BigDecimal.ZERO;
         BigDecimal totalAmount = BigDecimal.ZERO;
+
+        BigDecimal minOrderBase = (minOrderSubTotal != null) ? minOrderSubTotal : subTotal;
 
         for (CartItems item : items) {
             if (Boolean.FALSE.equals(item.getDeleted())) {
@@ -63,15 +81,14 @@ public class PricingServiceImpl implements PricingService {
             }
         }
 
-        expeditedShipping = expeditedShipping.add(calcShipping(items, userId));
+        expeditedShipping = expeditedShipping.add(calcShipping(items, provinceCity));
 
-        if(!discountVoucherId.isBlank()){
+        if(discountVoucherId != null){
             bulkDiscount = bulkDiscount.add(calcBulkDiscount(userId, discountVoucherId, subTotal));
         }
 
-        if(!shippingVoucherId.isBlank()){
-            shippingDiscount = shippingDiscount.add(calcShippingDiscount(userId, shippingVoucherId, expeditedShipping, subTotal));
-        }
+        if(shippingVoucherId != null){
+            shippingDiscount = shippingDiscount.add(calcShippingDiscount(userId, shippingVoucherId, expeditedShipping, minOrderBase));        }
 
         totalAmount = subTotal.subtract(bulkDiscount).add(expeditedShipping).subtract(shippingDiscount);
 
@@ -86,9 +103,9 @@ public class PricingServiceImpl implements PricingService {
         return summaryResDto;
     }
 
-    public BigDecimal calcShippingDiscount(String userId, String discountVoucherId, BigDecimal expeditedShipping,
-                                           BigDecimal subTotal) {
-        Optional<UserVouchers> vouchers = userVouchersRepo.findByUserIdAndVoucherId(userId, discountVoucherId);
+    public BigDecimal calcShippingDiscount(String userId, String shippingVoucherId, BigDecimal expeditedShipping,
+                                           BigDecimal minOrderBase) {
+        Optional<UserVouchers> vouchers = userVouchersRepo.findByUserIdAndVoucherId(userId, shippingVoucherId);
 
         BigDecimal discountVal = BigDecimal.ZERO;
         BigDecimal shippingDiscount  = BigDecimal.ZERO;
@@ -97,7 +114,7 @@ public class PricingServiceImpl implements PricingService {
             if (Boolean.FALSE.equals(vouchers.get().getDeleted())
                     && vouchers.get().getStatus() == UserVoucherStatus.UNUSED
                     && vouchers.get().getVoucher().getVoucherType() == VoucherType.FREE_SHIPPING) {
-                if (vouchers.get().getVoucher().getMinOrderAmount().compareTo(subTotal) <= 0
+                if (vouchers.get().getVoucher().getMinOrderAmount().compareTo(minOrderBase) <= 0
                         && (vouchers.get().getVoucher().getUsageLimit() - vouchers.get().getVoucher().getUsageCount()) > 0
                         && vouchers.get().getVoucher().getStatus() == VoucherStatus.ACTIVE) {
 
@@ -151,40 +168,32 @@ public class PricingServiceImpl implements PricingService {
         return bulkDiscount;
     }
 
-    public BigDecimal calcShipping(List<CartItems> items, String userId) {
-        Optional<Users> usersOptional = usersRepo.findById(userId);
-        String address = "";
-        if (usersOptional.isPresent()) {
-            for (Addresses addresses : usersOptional.get().getAddresses()) {
-                if (addresses.getIsDefault()) {
-                    address = addresses.getProvinceCity();
-                    break;
-                }
-            }
-
-            if(address.isBlank()){
-                throw new RuntimeException("address not found!");
-            }
+    public BigDecimal calcShipping(List<CartItems> items, String provinceCity) {
+        if(provinceCity == null || provinceCity.isBlank()){
+            throw new RuntimeException("Shipping address not found!");
         }
 
-
-
         ShippingZone zone;
-        if (address.equalsIgnoreCase("Ha Noi") || address.equalsIgnoreCase("Ho Chi Minh")) {
+        if (provinceCity.equalsIgnoreCase("Ha Noi") || provinceCity.equalsIgnoreCase("Ho Chi Minh")) {
             zone = ShippingZone.NOI_THANH;
         } else {
             zone = ShippingZone.LIEN_TINH;
         }
 
         ShippingConfigs configs = carriersRepo.findByMinFee(zone);
+        if (configs == null){
+            throw new RuntimeException("No shipping config for zone: " + zone);
+        }
 
         BigDecimal shippingFee = BigDecimal.ZERO;
         for (CartItems item : items) {
-            ProductVariants productVariants = item.getProductVariant();
-            shippingFee = shippingFee.add(
-                    productVariants.getWeight()
-                            .multiply(BigDecimal.valueOf(item.getQuantity()))
-                            .multiply(configs.getPrice()));
+            if(Boolean.FALSE.equals(item.getDeleted())){
+                ProductVariants productVariants = item.getProductVariant();
+                shippingFee = shippingFee.add(
+                        productVariants.getWeight()
+                                .multiply(BigDecimal.valueOf(item.getQuantity()))
+                                .multiply(configs.getPrice()));
+            }
         }
 
         return shippingFee;

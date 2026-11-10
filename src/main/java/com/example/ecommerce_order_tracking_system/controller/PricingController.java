@@ -18,8 +18,9 @@ public class PricingController {
 
     @GetMapping("/summary")
     public ResponseEntity<PricingSummaryResDto> getOrderSummary (Authentication authentication,
-                                                                 @RequestParam String discountVoucherId,
-                                                                 @RequestParam String shippingVoucherId){
-        return ResponseEntity.ok(orderService.getOrderSummary(authentication.getName(), discountVoucherId, shippingVoucherId));
+                                                                 @RequestParam(required = false) String addressId,
+                                                                 @RequestParam(required = false) String discountVoucherId,
+                                                                 @RequestParam(required = false) String shippingVoucherId){
+        return ResponseEntity.ok(orderService.getOrderSummary(authentication.getName(), addressId, discountVoucherId, shippingVoucherId));
     }
 }

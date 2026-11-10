@@ -70,10 +70,12 @@ public class Orders implements Serializable {
 
     @ColumnDefault("'PENDING'")
     @Column(name = "status")
+    @Enumerated(EnumType.STRING)
     private OrderStatus status;
 
     @ColumnDefault("'AWAITING_PAYMENT'")
     @Column(name = "payment_status", nullable = false)
+    @Enumerated(EnumType.STRING)
     private OrderPaymentStatus paymentStatus;
 
     @Column(name = "created_at")
