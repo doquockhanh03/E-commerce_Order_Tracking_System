@@ -9,8 +9,8 @@ import org.springframework.data.repository.query.Param;
 public interface InventoriesRepo extends JpaRepository<Inventories, String> {
 
     @Modifying
-    @Query(""" 
-        Update Inventories a 
+    @Query("""
+        Update Inventories a
             set a.reservedQuantity = a.reservedQuantity + :quantity
             where a.productVariant.id = :variantId
             and a.quantityInStock - a.reservedQuantity >= :quantity

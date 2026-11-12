@@ -8,5 +8,5 @@ public interface CartsService {
 
         public CartsResDto getCartDetail (String userId);
 
-        public CartsResDto updateCartItemQuantity(String username, String cartItemId, String action);
+        public CartsResDto updateCartItemQuantity(String userId, String cartItemId, String action);
 }

@@ -14,7 +14,6 @@ import com.example.ecommerce_order_tracking_system.repository.product.Inventorie
 import com.example.ecommerce_order_tracking_system.repository.user.AddressesRepo;
 import com.example.ecommerce_order_tracking_system.repository.user.UsersRepo;
 import com.example.ecommerce_order_tracking_system.service.OrdersService;
-import com.example.ecommerce_order_tracking_system.service.PricingService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -33,13 +32,8 @@ import java.util.Optional;
 public class OrdersServiceImpl implements OrdersService {
 
     private final UsersRepo usersRepo;
-
     private final CartsRepo cartsRepo;
-
-    private final CartItemsRepo cartItemsRepo;
-
     private final InventoriesRepo inventoriesRepo;
-
     private final PricingServiceImpl pricingService;
     private final AddressesRepo addressesRepo;
     private final CarriersRepo carriersRepo;
@@ -54,18 +48,17 @@ public class OrdersServiceImpl implements OrdersService {
 
     @Override
     @Transactional
-    public OrderResDto createOrder(String username, CreateOrderReqDto request) {
-        if(username == null || request.getCarrierId() == null
+    public OrderResDto createOrder(String userId, CreateOrderReqDto request) {
+        if(userId == null || request.getCarrierId() == null
                 || request.getPaymentMethodId() == null){
             throw new RuntimeException("Invalid parameters");
         }
 
-        Optional<Users> usersOptional = usersRepo.findByUsername(username);
+        Optional<Users> usersOptional = usersRepo.findById(userId);
         if(usersOptional.isEmpty()){
             throw new RuntimeException("user not found!");
         }
 
-        String userId = usersOptional.get().getId();
         Users user = usersOptional.get();
 
         Optional<Addresses> address;
@@ -215,7 +208,7 @@ public class OrdersServiceImpl implements OrdersService {
                 }
             }
 
-            Shops shop = shopItems.get(0).getProductVariant().getProduct().getShop();
+            Shops shop = shopItems.getFirst().getProductVariant().getProduct().getShop();
 
             BigDecimal shopDiscount;
 
@@ -268,13 +261,9 @@ public class OrdersServiceImpl implements OrdersService {
 
             Orders orderSave =  ordersRepo.save(orders);
 
-            if(discountVoucher.isPresent()){
-                orderVouchersRepo.save(setOderVouchers(orderSave, discountVoucher.get().getVoucher()));
-            }
+            discountVoucher.ifPresent(userVouchers -> orderVouchersRepo.save(setOderVouchers(orderSave, userVouchers.getVoucher())));
 
-            if(shippingVoucher.isPresent()){
-                orderVouchersRepo.save(setOderVouchers(orderSave, shippingVoucher.get().getVoucher()));
-            }
+            shippingVoucher.ifPresent(userVouchers -> orderVouchersRepo.save(setOderVouchers(orderSave, userVouchers.getVoucher())));
 
 
             for(CartItems items : shopItems){
@@ -329,13 +318,9 @@ public class OrdersServiceImpl implements OrdersService {
 
         }
 
-        if(discountVoucher.isPresent()){
-            setVoucherUsed(userId, discountVoucher.get());
-        }
+        discountVoucher.ifPresent(userVouchers -> setVoucherUsed(userId, userVouchers));
 
-        if(shippingVoucher.isPresent()){
-            setVoucherUsed(userId, shippingVoucher.get());
-        }
+        shippingVoucher.ifPresent(userVouchers -> setVoucherUsed(userId, userVouchers));
 
         OrderResDto orderResDto = new OrderResDto();
 

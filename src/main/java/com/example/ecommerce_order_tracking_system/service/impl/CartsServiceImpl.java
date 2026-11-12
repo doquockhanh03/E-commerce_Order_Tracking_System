@@ -7,10 +7,8 @@ import com.example.ecommerce_order_tracking_system.entity.order.CartItems;
 import com.example.ecommerce_order_tracking_system.entity.order.Carts;
 import com.example.ecommerce_order_tracking_system.entity.product.ProductImages;
 import com.example.ecommerce_order_tracking_system.entity.product.ProductVariants;
-import com.example.ecommerce_order_tracking_system.entity.user.Users;
 import com.example.ecommerce_order_tracking_system.repository.order.CartItemsRepo;
 import com.example.ecommerce_order_tracking_system.repository.order.CartsRepo;
-import com.example.ecommerce_order_tracking_system.repository.user.UsersRepo;
 import com.example.ecommerce_order_tracking_system.service.CartsService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -28,8 +26,6 @@ public class CartsServiceImpl implements CartsService {
 
     private final CartItemsRepo cartItemsRepo;
 
-    private final UsersRepo usersRepo;
-
     @Override
     public void addToCart(AddToCartReqDto request) {
 
@@ -37,17 +33,10 @@ public class CartsServiceImpl implements CartsService {
 
     @Override
     @Transactional
-    public CartsResDto updateCartItemQuantity(String username, String cartItemId, String action) {
+    public CartsResDto updateCartItemQuantity(String userId, String cartItemId, String action) {
         if(cartItemId == null || cartItemId.isBlank() || action == null || action.isBlank()){
             throw new IllegalArgumentException("Invalid parameters");
         }
-
-        Optional<Users> user = usersRepo.findByUsername(username);
-        if(user.isEmpty()){
-            throw new RuntimeException("user not found!");
-        }
-
-        String userId = user.get().getId();
 
         Optional<Carts> cartsOptional = cartsRepo.getByUserId(userId);
         if (cartsOptional.isEmpty()) {
@@ -79,39 +68,30 @@ public class CartsServiceImpl implements CartsService {
             throw new IllegalArgumentException("Invalid action!");
         }
 
-        return getCartDetail(username);
+        return getCartDetail(userId);
     }
 
     @Override
-    public CartsResDto getCartDetail(String username) {
-        Optional<Users> user = usersRepo.findByUsername(username);
-        if(user.isEmpty()){
-            throw new RuntimeException("user not found!");
-        }
+    public CartsResDto getCartDetail(String userId) {
 
-        String userId = user.get().getId();
+        if(userId == null || userId.isBlank()){
+            throw new RuntimeException("User not found!");
+        }
 
         Optional<Carts> cartsOptional = cartsRepo.getByUserId(userId);
         if (cartsOptional.isEmpty()) {
             throw new RuntimeException("Cart is empty!");
         }
 
-        List<CartItemsResDto> cartItemsList = new ArrayList<>();
+        List<CartItems> cartItemsList = cartItemsRepo.getCartItemsWithDetails(cartsOptional.get().getId());
 
-        for (CartItems items : cartsOptional.get().getCartItems()) {
-            if (Boolean.FALSE.equals(items.getDeleted())) {
-                ProductVariants productVariants = items.getProductVariant();
+        List<CartItemsResDto> cartItemsResDto = new ArrayList<>();
 
-                if (productVariants == null || productVariants.getProduct() == null) {
-                    continue;
-                }
-
-                CartItemsResDto cartItemsResDto = createCartItemsResDto(items, productVariants);
-                cartItemsList.add(cartItemsResDto);
-            }
+        for(CartItems items : cartItemsList){
+            cartItemsResDto.add(createCartItemsResDto(items, items.getProductVariant()));
         }
 
-        return new CartsResDto(cartItemsList);
+        return new CartsResDto(cartItemsResDto);
     }
 
     private CartItemsResDto createCartItemsResDto(CartItems items, ProductVariants productVariants) {
