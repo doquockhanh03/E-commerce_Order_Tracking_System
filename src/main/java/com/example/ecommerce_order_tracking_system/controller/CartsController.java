@@ -28,8 +28,8 @@ public class CartsController {
     @PatchMapping("/item/quantity/{cartItemId}")
     public ResponseEntity<CartsResDto> updateCartItemQuantity (@AuthenticationPrincipal CustomUserDetails principal,
                                                                @PathVariable String cartItemId,
-                                                               @RequestBody CartItemActionReqDto action){
-        return ResponseEntity.ok(cartsService.updateCartItemQuantity(principal.getUserId(), cartItemId, action.getAction()));
+                                                               @RequestBody CartItemActionReqDto request){
+        return ResponseEntity.ok(cartsService.updateCartItemQuantity(principal.getUserId(), cartItemId, request));
 
     }
 }

@@ -3,8 +3,10 @@ package com.example.ecommerce_order_tracking_system.service.impl;
 import com.example.ecommerce_order_tracking_system.common.enums.UserStatus;
 import com.example.ecommerce_order_tracking_system.entity.user.Users;
 import com.example.ecommerce_order_tracking_system.repository.user.UsersRepo;
+import com.example.ecommerce_order_tracking_system.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NullMarked;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -51,15 +54,17 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         }
 
 
-        return org.springframework.security.core.userdetails.User
-                .withUsername(user.getUsername())
-                .password(user.getPasswordHash())
-                .authorities(user.getUserRoles().stream()
+        return new CustomUserDetails(
+                user.getId(),
+                user.getUsername(),
+                user.getPasswordHash(),
+                user.getStatus() == UserStatus.ACTIVE,
+                user.getUserRoles().stream()
                         .filter(userRole -> !userRole.getDeleted())
                         .map(userRole -> "ROLE_" + userRole.getRole().getName())
-                        .toArray(String[]::new))
-                .disabled(user.getStatus() != UserStatus.ACTIVE)
-                .build();
+                        .map(SimpleGrantedAuthority::new)
+                        .collect(Collectors.toList())
+        );
     }
 }
 

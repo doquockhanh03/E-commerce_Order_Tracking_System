@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,7 +49,7 @@ public class PricingServiceImpl implements PricingService {
             }
         }
 
-        Optional<Carts> cartsOptional = cartsRepo.getByUserId(userId);
+         Optional<Carts> cartsOptional = cartsRepo.getByUserId(userId);
         if (cartsOptional.isEmpty()) {
             throw new RuntimeException("Cart not found!");
         }
@@ -86,35 +85,13 @@ public class PricingServiceImpl implements PricingService {
 
         expeditedShipping = expeditedShipping.add(calcShipping(items, provinceCity));
 
-        if(discountVoucherId != null){
+        if(discountVoucherId != null && !discountVoucherId.isBlank()){
             bulkDiscount = bulkDiscount.add(calcBulkDiscount(userId, discountVoucherId, subTotal));
         }
 
-        shippingDiscount = shippingDiscount.add(calcShippingDiscount(userId, shippingVoucherId, expeditedShipping, minOrderBase));
-
         if(shippingVoucherId != null && !shippingVoucherId.isBlank()){
-            List<String> shopIds = new ArrayList<>();
-            for (CartItems item : items){
-                if(Boolean.FALSE.equals(item.getDeleted())){
-                    String shopId = item.getProductVariant().getProduct().getShop().getId();
-                    if(!shopIds.contains(shopId)){
-                        shopIds.add(shopId);
-                    }
-                }
-            }
-
-            for (String shopId : shopIds){
-                List<CartItems> shopItems = new ArrayList<>();
-                for (CartItems item : items){
-                    if(Boolean.FALSE.equals(item.getDeleted())
-                            && shopId.equals(item.getProductVariant().getProduct().getShop().getId())){
-                        shopItems.add(item);
-                    }
-                }
-                BigDecimal shopShipping = calcShipping(shopItems, provinceCity);
-                shippingDiscount = shippingDiscount.add(
-                        calcShippingDiscount(userId, shippingVoucherId, shopShipping, minOrderBase));
-            }
+            shippingDiscount = shippingDiscount.add(calcShippingDiscount(userId, shippingVoucherId, expeditedShipping,
+                    minOrderBase));
         }
 
         totalAmount = subTotal.subtract(bulkDiscount).add(expeditedShipping).subtract(shippingDiscount);

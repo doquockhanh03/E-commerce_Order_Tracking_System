@@ -1,6 +1,7 @@
 package com.example.ecommerce_order_tracking_system.service.impl;
 
 import com.example.ecommerce_order_tracking_system.dto.request.AddToCartReqDto;
+import com.example.ecommerce_order_tracking_system.dto.request.CartItemActionReqDto;
 import com.example.ecommerce_order_tracking_system.dto.response.CartItemsResDto;
 import com.example.ecommerce_order_tracking_system.dto.response.CartsResDto;
 import com.example.ecommerce_order_tracking_system.entity.order.CartItems;
@@ -33,8 +34,9 @@ public class CartsServiceImpl implements CartsService {
 
     @Override
     @Transactional
-    public CartsResDto updateCartItemQuantity(String userId, String cartItemId, String action) {
-        if(cartItemId == null || cartItemId.isBlank() || action == null || action.isBlank()){
+    public CartsResDto updateCartItemQuantity(String userId, String cartItemId, CartItemActionReqDto request) {
+        if(cartItemId == null || cartItemId.isBlank() || request == null
+                || (request.getQuantity() == null && (request.getAction() == null || request.getAction().isBlank()))){
             throw new IllegalArgumentException("Invalid parameters");
         }
 
@@ -56,17 +58,32 @@ public class CartsServiceImpl implements CartsService {
         int reservedQuantity = cartItemsOptional.get().getProductVariant().getInventory().getReservedQuantity();
         int itemQuantity = cartItemsOptional.get().getQuantity();
 
-        if(action.equalsIgnoreCase("INCREASE")){
-            if((quantityInStock - reservedQuantity) > itemQuantity){
-                cartItemsOptional.get().setQuantity(cartItemsOptional.get().getQuantity() + 1);
+        if(request.getQuantity() != null && request.getQuantity() > 0){
+            if(quantityInStock - reservedQuantity <= 0){
+                throw new RuntimeException("OUT OF STOCK");
             }
-        }else if(action.equalsIgnoreCase("DECREASE")){
-            if(itemQuantity > 1){
-                cartItemsOptional.get().setQuantity(cartItemsOptional.get().getQuantity() - 1);
+            else if((quantityInStock - reservedQuantity) >= request.getQuantity()){
+                cartItemsOptional.get().setQuantity(request.getQuantity());
+            }else {
+
+                cartItemsOptional.get().setQuantity((quantityInStock - reservedQuantity));
             }
-        }else {
-            throw new IllegalArgumentException("Invalid action!");
+        }else{
+            if(request.getAction().equalsIgnoreCase("INCREASE")){
+                if((quantityInStock - reservedQuantity) > itemQuantity){
+                    cartItemsOptional.get().setQuantity(cartItemsOptional.get().getQuantity() + 1);
+                }
+            }else if(request.getAction().equalsIgnoreCase("DECREASE")){
+                if(itemQuantity > 1){
+                    cartItemsOptional.get().setQuantity(cartItemsOptional.get().getQuantity() - 1);
+                }
+            }else {
+                throw new IllegalArgumentException("Invalid action!");
+            }
         }
+
+
+
 
         return getCartDetail(userId);
     }
@@ -105,9 +122,16 @@ public class CartsServiceImpl implements CartsService {
         BigDecimal totalPrice = productVariants.getPrice().multiply(new BigDecimal(items.getQuantity()));
         cartItemsResDto.setTotalPrice(totalPrice);
 
-        Integer quantityInStock = (productVariants.getInventory().getQuantityInStock() - productVariants.getInventory().getReservedQuantity());
+        int quantityInStock = (productVariants.getInventory().getQuantityInStock() - productVariants.getInventory().getReservedQuantity());
         cartItemsResDto.setQuantityVariantInStock(quantityInStock);
 
+        if(quantityInStock <= 5 && quantityInStock > 0){
+            cartItemsResDto.setInventoryStatus("LIMITED STOCK (" + quantityInStock + " LEFT)");
+        }else if(quantityInStock <= 0){
+            cartItemsResDto.setInventoryStatus("OUT OF STOCK");
+        }else {
+            cartItemsResDto.setInventoryStatus("IN STOCK");
+        }
         boolean imgCheck = false;
         for(ProductImages images : productVariants.getProductImages()){
             if(Boolean.FALSE.equals(images.getDeleted()) && images.getDisplayOrder() == 1){

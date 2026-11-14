@@ -5,6 +5,7 @@ import com.example.ecommerce_order_tracking_system.dto.request.CreateOrderReqDto
 import com.example.ecommerce_order_tracking_system.dto.response.OrderResDto;
 import com.example.ecommerce_order_tracking_system.dto.response.PricingSummaryResDto;
 import com.example.ecommerce_order_tracking_system.entity.order.*;
+import com.example.ecommerce_order_tracking_system.entity.product.Inventories;
 import com.example.ecommerce_order_tracking_system.entity.product.ProductVariants;
 import com.example.ecommerce_order_tracking_system.entity.user.Addresses;
 import com.example.ecommerce_order_tracking_system.entity.user.Shops;
@@ -45,10 +46,11 @@ public class OrdersServiceImpl implements OrdersService {
     private final VouchersRepo vouchersRepo;
     private final OrderVouchersRepo orderVouchersRepo;
     private final TrackingLogsRepo trackingLogsRepo;
+    private final CartItemsRepo cartItemsRepo;
 
     @Override
     @Transactional
-    public OrderResDto createOrder(String userId, CreateOrderReqDto request) {
+    public OrderResDto createOrder(String userId, List<String> cartItemIds, CreateOrderReqDto request) {
         if(userId == null || request.getCarrierId() == null
                 || request.getPaymentMethodId() == null){
             throw new RuntimeException("Invalid parameters");
@@ -146,20 +148,22 @@ public class OrdersServiceImpl implements OrdersService {
             throw new RuntimeException("Cart is empty!");
         }
 
-        List<CartItems> cartItems = cartsOptional.get().getCartItems();
+        List<CartItems> cartItems = cartItemsRepo.getSelectedItems(cartsOptional.get().getId(), cartItemIds);
 
         for(CartItems items : cartItems){
             if(Boolean.FALSE.equals(items.getDeleted())) {
                 ProductVariants productVariants = items.getProductVariant();
 
-                if (productVariants == null || productVariants.getProduct() == null) {
-                    continue;
+                Optional<Inventories> inventories = inventoriesRepo.findByProductVariantIdForUpdate(productVariants.getId());
+                if(inventories.isEmpty()){
+                    throw new RuntimeException("Product variant not found!");
                 }
-                int updateStatus = inventoriesRepo.reserve(productVariants.getId(), items.getQuantity());
 
-                if(updateStatus == 0){
+                if(inventories.get().getQuantityInStock() - inventories.get().getReservedQuantity() < items.getQuantity()){
                     throw new RuntimeException("Out of stock!");
                 }
+
+                inventories.get().setReservedQuantity(inventories.get().getReservedQuantity() + items.getQuantity());
             }
         }
         List<String> listOrderIds = new ArrayList<>();
@@ -170,6 +174,8 @@ public class OrdersServiceImpl implements OrdersService {
 
         BigDecimal totalDiscount = pricingAll.getBulkDiscount();
         BigDecimal totalSubtotal = pricingAll.getSubTotal();
+        BigDecimal totalShippingDiscount = pricingAll.getShippingDiscount();
+        BigDecimal totalShippingFee = pricingAll.getExpeditedShipping();
 
         if (discountVoucher.isPresent()
                 && pricingAll.getSubTotal().compareTo(discountVoucher.get().getVoucher().getMinOrderAmount()) < 0) {
@@ -195,7 +201,9 @@ public class OrdersServiceImpl implements OrdersService {
             throw new RuntimeException("Cart is empty!");
         }
 
+        BigDecimal allShippingDiscount = BigDecimal.ZERO;
         BigDecimal allDiscount = BigDecimal.ZERO;
+
         for(int i = 0; i < shopIds.size(); i++){
             List<CartItems> shopItems = new ArrayList<>();
 
@@ -211,26 +219,36 @@ public class OrdersServiceImpl implements OrdersService {
             Shops shop = shopItems.getFirst().getProductVariant().getProduct().getShop();
 
             BigDecimal shopDiscount;
+            BigDecimal shopShippingDiscount;
 
             PricingSummaryResDto pricingShop = pricingService.calculateOrderSummary(
-                    userId, shopItems, address.get().getProvinceCity(), "", request.getShippingVoucherId(), pricingAll.getSubTotal());
+                    userId, shopItems, address.get().getProvinceCity(), "", "", null);
 
             if(i == shopIds.size() - 1){
                 shopDiscount = totalDiscount.subtract(allDiscount);
+                shopShippingDiscount = totalShippingDiscount.subtract(allShippingDiscount);
             }else{
-                shopDiscount = pricingShop.getSubTotal()
-                        .multiply(totalDiscount)
-                        .divide(totalSubtotal, 2, RoundingMode.HALF_UP);
+                shopDiscount = (totalSubtotal.signum() > 0)
+                        ? pricingShop.getSubTotal().multiply(totalDiscount)
+                        .divide(totalSubtotal, 2, RoundingMode.HALF_UP)
+                        : BigDecimal.ZERO;
 
                 allDiscount = allDiscount.add(shopDiscount);
+
+                shopShippingDiscount = (totalShippingFee.signum() > 0)
+                        ? pricingShop.getExpeditedShipping().multiply(totalShippingDiscount)
+                        .divide(totalShippingFee, 2, RoundingMode.HALF_UP)
+                        : BigDecimal.ZERO;
+                allShippingDiscount = allShippingDiscount.add(shopShippingDiscount);
             }
 
             pricingShop.setBulkDiscount(shopDiscount);
+            pricingShop.setShippingDiscount(shopShippingDiscount);
 
             pricingShop.setTotalAmount(pricingShop.getSubTotal()
                     .subtract(shopDiscount)
                     .add(pricingShop.getExpeditedShipping())
-                    .subtract(pricingShop.getShippingDiscount()));
+                    .subtract(shopShippingDiscount));
 
             String shippingAddress = address.get().getAddressDetail() + ", "
                     + address.get().getHamletVillage() + ", "

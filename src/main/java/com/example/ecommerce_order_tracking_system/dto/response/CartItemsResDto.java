@@ -26,4 +26,6 @@ public class CartItemsResDto {
     private Integer quantityVariantInStock;
 
     private BigDecimal totalPrice;
+
+    private String inventoryStatus;
 }

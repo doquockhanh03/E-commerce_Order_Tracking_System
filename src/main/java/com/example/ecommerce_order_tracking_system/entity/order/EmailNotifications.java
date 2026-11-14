@@ -27,11 +27,12 @@ public class EmailNotifications implements Serializable {
     @Column(name = "id", nullable = false, length = 36)
     private String id;
 
-    @Lob
     @Column(name = "status")
+    @Enumerated(EnumType.STRING)
     private EmailStatus status;
 
     @Column(name = "order_status", nullable = false)
+    @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;
 
     @Column(name = "created_at")
