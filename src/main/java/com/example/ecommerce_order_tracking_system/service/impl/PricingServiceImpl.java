@@ -5,6 +5,7 @@ import com.example.ecommerce_order_tracking_system.dto.response.PricingSummaryRe
 import com.example.ecommerce_order_tracking_system.entity.order.*;
 import com.example.ecommerce_order_tracking_system.entity.product.ProductVariants;
 import com.example.ecommerce_order_tracking_system.entity.user.Addresses;
+import com.example.ecommerce_order_tracking_system.exception.BusinessException;
 import com.example.ecommerce_order_tracking_system.repository.order.CarriersRepo;
 import com.example.ecommerce_order_tracking_system.repository.order.CartItemsRepo;
 import com.example.ecommerce_order_tracking_system.repository.order.CartsRepo;
@@ -39,29 +40,26 @@ public class PricingServiceImpl implements PricingService {
         Optional<Addresses> addresses;
         if (addressId != null && !addressId.isBlank()) {
             addresses = addressesRepo.findByIdAndUserId(addressId, userId);
-            if(addresses.isEmpty()){
-                throw new RuntimeException("Address not found!");
-            }
         } else {
             addresses = addressesRepo.findFirstByUserIdAndIsDefaultTrueAndDeletedFalse(userId);
-            if(addresses.isEmpty()){
-                throw new RuntimeException("Address not found!");
-            }
+        }
+        if(addresses.isEmpty()){
+            throw new BusinessException(ErrorCode.ADDRESS_NOT_FOUND, "Address not found!");
         }
 
-         Optional<Carts> cartsOptional = cartsRepo.getByUserId(userId);
+        Optional<Carts> cartsOptional = cartsRepo.getByUserId(userId);
         if (cartsOptional.isEmpty()) {
-            throw new RuntimeException("Cart not found!");
+            throw new BusinessException(ErrorCode.CART_NOT_FOUND, "Cart not found!");
         }
 
         if(cartItemIds.isEmpty()){
-            throw new RuntimeException("No items selected!");
+            throw new BusinessException(ErrorCode.INVALID_ACTION, "No items selected!");
         }
 
         List<CartItems> cartItems = cartItemsRepo.getSelectedItems(cartsOptional.get().getId(), cartItemIds);
 
         if(cartItemIds.stream().distinct().count() != cartItems.size()){
-            throw new RuntimeException("Invalid cart information!");
+            throw new BusinessException(ErrorCode.INVALID_PARAMETER_TYPE, "Invalid cart information!");
         }
 
         return calculateOrderSummary(userId, cartItems, addresses.get().getProvinceCity(), discountVoucherId, shippingVoucherId, null);
@@ -174,7 +172,7 @@ public class PricingServiceImpl implements PricingService {
 
     public BigDecimal calcShipping(List<CartItems> items, String provinceCity) {
         if(provinceCity == null || provinceCity.isBlank()){
-            throw new RuntimeException("Shipping address not found!");
+            throw new BusinessException(ErrorCode.ADDRESS_NOT_FOUND, "Shipping address not found!");
         }
 
         ShippingZone zone;

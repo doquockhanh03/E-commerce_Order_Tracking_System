@@ -10,6 +10,7 @@ import com.example.ecommerce_order_tracking_system.entity.product.ProductVariant
 import com.example.ecommerce_order_tracking_system.entity.user.Addresses;
 import com.example.ecommerce_order_tracking_system.entity.user.Shops;
 import com.example.ecommerce_order_tracking_system.entity.user.Users;
+import com.example.ecommerce_order_tracking_system.exception.BusinessException;
 import com.example.ecommerce_order_tracking_system.repository.order.*;
 import com.example.ecommerce_order_tracking_system.repository.product.InventoriesRepo;
 import com.example.ecommerce_order_tracking_system.repository.user.AddressesRepo;
@@ -53,39 +54,37 @@ public class OrdersServiceImpl implements OrdersService {
     public OrderResDto createOrder(String userId, List<String> cartItemIds, CreateOrderReqDto request) {
         if(userId == null || request.getCarrierId() == null
                 || request.getPaymentMethodId() == null){
-            throw new RuntimeException("Invalid parameters");
+
+            throw new BusinessException(ErrorCode.INVALID_PARAMETER_TYPE, "Invalid parameters");
         }
 
         Optional<Users> usersOptional = usersRepo.findById(userId);
         if(usersOptional.isEmpty()){
-            throw new RuntimeException("user not found!");
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND, "user not found!");
         }
 
         Users user = usersOptional.get();
 
         Optional<Addresses> address;
-        if (request.getAddressId() != null && !request.getAddressId().isBlank()) {
+        if(request.getAddressId() != null && !request.getAddressId().isBlank()) {
             address = addressesRepo.findByIdAndUserId(request.getAddressId(), userId);
-            if(address.isEmpty()){
-                throw new RuntimeException("Address not found!");
-            }
         } else {
             address = addressesRepo.findFirstByUserIdAndIsDefaultTrueAndDeletedFalse(userId);
-            if(address.isEmpty()){
-                throw new RuntimeException("Address not found!");
-            }
+        }
+        if(address.isEmpty()){
+            throw new BusinessException(ErrorCode.ADDRESS_NOT_FOUND, "Address not found!");
         }
 
         Optional<Carriers> carriersOptional = carriersRepo.findById(request.getCarrierId());
         if(carriersOptional.isEmpty()){
-            throw new RuntimeException("Carrier not found!");
+            throw new BusinessException(ErrorCode.CARRIER_NOT_FOUND, "Carrier not found!");
         }
         Carriers carrier = carriersOptional.get();
 
 
         Optional<PaymentMethods> paymentMethods = paymentMethodsRepo.findById(request.getPaymentMethodId());
         if(paymentMethods.isEmpty()){
-            throw new RuntimeException("Payment method not found!");
+            throw new BusinessException(ErrorCode.PAYMENT_METHOD_NOT_FOUND, "Payment method not found!");
         }
 
         Optional<UserVouchers> discountVoucher = Optional.empty();
@@ -95,25 +94,18 @@ public class OrdersServiceImpl implements OrdersService {
             Optional<Vouchers> vouchers = vouchersRepo.findById(request.getDiscountVoucherId());
 
             if(vouchers.isPresent() && vouchers.get().getVoucherType() == VoucherType.DISCOUNT){
-                if(vouchers.get().getStatus() == VoucherStatus.EXPIRED){
-                    throw new RuntimeException("Voucher has expired!");
-                }
-
-                int limit = vouchers.get().getUsageLimit() - vouchers.get().getUsageCount();
-                if(limit <= 0){
-                    throw new RuntimeException("Voucher is no longer available!");
-                }
+                checkVoucherExpired(vouchers);
             }else {
-                throw new RuntimeException("Discount voucher not found!");
+                throw new BusinessException(ErrorCode.VOUCHER_NOT_FOUND, "Discount voucher not found!");
             }
 
             discountVoucher = userVouchersRepo.findByUserIdAndVoucherId(userId, request.getDiscountVoucherId());
             if(discountVoucher.isEmpty() || Boolean.TRUE.equals(discountVoucher.get().getDeleted())){
-                throw new RuntimeException("Discount voucher not found!");
+                throw new BusinessException(ErrorCode.VOUCHER_NOT_FOUND, "Discount voucher not found!");
             }
 
             if (discountVoucher.get().getStatus() != UserVoucherStatus.UNUSED) {
-                throw new RuntimeException("Discount voucher already used!");
+                throw new BusinessException(ErrorCode.VOUCHER_ALREADY_USED, "Discount voucher already used!");
             }
         }
 
@@ -121,31 +113,24 @@ public class OrdersServiceImpl implements OrdersService {
             Optional<Vouchers> vouchers = vouchersRepo.findById(request.getShippingVoucherId());
             if(vouchers.isPresent() && vouchers.get().getVoucherType() == VoucherType.FREE_SHIPPING){
 
-                if(vouchers.get().getStatus() == VoucherStatus.EXPIRED){
-                    throw new RuntimeException("Voucher has expired!");
-                }
-
-                int limit = vouchers.get().getUsageLimit() - vouchers.get().getUsageCount();
-                if(limit <= 0){
-                    throw new RuntimeException("Voucher is no longer available!");
-                }
+                checkVoucherExpired(vouchers);
             }else {
-                throw new RuntimeException("Discount voucher not found!");
+                throw new BusinessException(ErrorCode.VOUCHER_NOT_FOUND, "Shipping voucher not found!");
             }
 
             shippingVoucher = userVouchersRepo.findByUserIdAndVoucherId(userId, request.getShippingVoucherId());
             if(shippingVoucher.isEmpty() || Boolean.TRUE.equals(shippingVoucher.get().getDeleted())){
-                throw new RuntimeException("Shipping voucher not found!");
+                throw new BusinessException(ErrorCode.VOUCHER_NOT_FOUND, "Shipping voucher not found!");
             }
 
             if (shippingVoucher.get().getStatus() != UserVoucherStatus.UNUSED) {
-                throw new RuntimeException("Discount voucher already used!");
+                throw new BusinessException(ErrorCode.VOUCHER_ALREADY_USED, "Shipping voucher already used!");
             }
         }
 
         Optional<Carts> cartsOptional = cartsRepo.getByUserId(userId);
         if (cartsOptional.isEmpty()) {
-            throw new RuntimeException("Cart is empty!");
+            throw new BusinessException(ErrorCode.CART_EMPTY, "Cart is empty!");
         }
 
         List<CartItems> cartItems = cartItemsRepo.getSelectedItems(cartsOptional.get().getId(), cartItemIds);
@@ -156,11 +141,11 @@ public class OrdersServiceImpl implements OrdersService {
 
                 Optional<Inventories> inventories = inventoriesRepo.findByProductVariantIdForUpdate(productVariants.getId());
                 if(inventories.isEmpty()){
-                    throw new RuntimeException("Product variant not found!");
+                    throw new BusinessException(ErrorCode.VARIANT_NOT_FOUND, "Product variant not found!");
                 }
 
                 if(inventories.get().getQuantityInStock() - inventories.get().getReservedQuantity() < items.getQuantity()){
-                    throw new RuntimeException("Out of stock!");
+                    throw new BusinessException(ErrorCode.OUT_OF_STOCK, "Out of stock!");
                 }
 
                 inventories.get().setReservedQuantity(inventories.get().getReservedQuantity() + items.getQuantity());
@@ -179,12 +164,12 @@ public class OrdersServiceImpl implements OrdersService {
 
         if (discountVoucher.isPresent()
                 && pricingAll.getSubTotal().compareTo(discountVoucher.get().getVoucher().getMinOrderAmount()) < 0) {
-            throw new RuntimeException("Order does not meet discount voucher minimum!");
+            throw new BusinessException(ErrorCode.VOUCHER_MIN_ORDER, "Order does not meet discount voucher minimum!");
         }
 
         if (shippingVoucher.isPresent()
                 && pricingAll.getSubTotal().compareTo(shippingVoucher.get().getVoucher().getMinOrderAmount()) < 0) {
-            throw new RuntimeException("Order does not meet shipping voucher minimum!");
+            throw new BusinessException(ErrorCode.VOUCHER_MIN_ORDER, "Order does not meet shipping voucher minimum!");
         }
 
         List<String> shopIds = new ArrayList<>();
@@ -198,7 +183,7 @@ public class OrdersServiceImpl implements OrdersService {
         }
 
         if(shopIds.isEmpty()){
-            throw new RuntimeException("Cart is empty!");
+            throw new BusinessException(ErrorCode.CART_EMPTY, "Cart is empty!");
         }
 
         BigDecimal allShippingDiscount = BigDecimal.ZERO;
@@ -346,6 +331,19 @@ public class OrdersServiceImpl implements OrdersService {
         orderResDto.setTotalAmount(totalAmount);
 
         return orderResDto;
+    }
+
+    private void checkVoucherExpired(Optional<Vouchers> vouchers) {
+        if(vouchers.isPresent()){
+            if(vouchers.get().getStatus() == VoucherStatus.EXPIRED){
+                throw new BusinessException(ErrorCode.VOUCHER_EXPIRED, "Voucher has expired!");
+            }
+
+            int limit = vouchers.get().getUsageLimit() - vouchers.get().getUsageCount();
+            if(limit <= 0){
+                throw new BusinessException(ErrorCode.VOUCHER_UNAVAILABLE, "Voucher is no longer available!");
+            }
+        }
     }
 
     private void setVoucherUsed(String userId, UserVouchers userVouchers){

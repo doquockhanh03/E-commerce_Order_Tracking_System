@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Đăng nhập - LogisticsPro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0a2a8c; --navy-2:#1a3fb5; --bg:#f8f8fd; --field:#dfe3fc; --text:#191a2e; --muted:#5d6076;
+  --font:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --head:'Manrope','Inter',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);color:var(--text);background:var(--bg);min-height:100vh;display:grid;grid-template-columns:1fr 1fr}
+button,input{font-family:inherit}
+a{color:inherit}
+
+/* left hero */
+.hero{position:relative;overflow:hidden;color:#fff;background:linear-gradient(160deg,#0a2a8c 0%,#0d34a8 55%,#0a2a8c 100%);display:flex;flex-direction:column;justify-content:space-between;padding:32px 36px;min-height:100vh}
+.hero svg.bg{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+.hero>*:not(.bg){position:relative;z-index:1}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--head);font-weight:800;font-size:18px}
+.logo i{width:28px;height:28px;border-radius:6px;background:#fff;display:grid;place-items:center}
+.hero h2{font-family:var(--head);font-weight:800;font-size:clamp(30px,3.3vw,42px);line-height:1.22;letter-spacing:-.02em;max-width:420px}
+.hero .lead{margin-top:18px;font-size:13px;line-height:1.65;color:#c9d4f7;max-width:340px}
+.stats{margin-top:36px;display:flex;gap:56px}
+.stats b{display:block;font-family:var(--head);font-weight:800;font-size:24px}
+.stats span{display:block;margin-top:4px;font-size:10px;font-weight:600;letter-spacing:.08em;color:#b4c3f4}
+.foot{display:flex;gap:18px;flex-wrap:wrap;font-size:11px;color:#b4c3f4}
+.foot a{text-decoration:none}.foot a:hover{color:#fff}
+
+/* right form */
+.panel{display:flex;align-items:center;justify-content:center;padding:40px 24px}
+.box{width:100%;max-width:400px}
+.m-logo{display:none;font-family:var(--head);font-weight:800;font-size:18px;color:var(--navy);margin-bottom:24px}
+h1{font-family:var(--head);font-weight:800;font-size:26px;letter-spacing:-.02em}
+.sub{margin-top:6px;font-size:13px;color:var(--muted)}
+.roles{margin-top:22px;display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;border-radius:10px;background:#e7e9f8}
+.roles button{display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 4px;border:0;border-radius:8px;background:transparent;color:#5b6180;font-size:12px;font-weight:600;cursor:pointer;transition:background .15s,color .15s}
+.roles button:hover{color:var(--navy)}
+.roles button[aria-checked="true"]{background:#fff;color:var(--navy);box-shadow:0 2px 6px rgba(40,50,130,.12)}
+.field{margin-top:18px}
+.field label{display:block;font-size:10px;font-weight:700;letter-spacing:.07em;color:#4a4f68;margin-bottom:6px}
+.input{position:relative}
+.input input{width:100%;height:46px;padding:0 42px;border:2px solid transparent;border-radius:8px;background:var(--field);font-size:14px;color:var(--text);outline:0;transition:border-color .15s,background .15s}
+.input input::placeholder{color:#7c82a3}
+.input input:focus{border-color:var(--navy-2);background:#e6e9fd}
+.input input.bad{border-color:#d92d20}
+.input .l,.input .r{position:absolute;top:0;height:100%;display:grid;place-items:center;width:42px;color:#6a7094}
+.input .l{left:0;pointer-events:none}
+.input .r{right:0;background:none;border:0;cursor:pointer}
+.input .r:hover{color:var(--navy)}
+.opts{margin-top:16px;display:flex;justify-content:space-between;align-items:center;font-size:12px}
+.opts label{display:flex;align-items:center;gap:8px;color:var(--muted);cursor:pointer}
+.opts input{width:15px;height:15px;accent-color:var(--navy)}
+.opts a{font-weight:700;color:var(--navy);text-decoration:none}
+.opts a:hover{text-decoration:underline}
+.err{margin-top:14px;padding:10px 12px;border-radius:8px;background:#ffe3e0;color:#a3171a;font-size:12px;line-height:1.45}
+.err[hidden]{display:none}
+.submit{margin-top:20px;width:100%;height:48px;border:0;border-radius:8px;cursor:pointer;color:#fff;font-weight:700;font-size:14px;background:linear-gradient(180deg,var(--navy-2),var(--navy));box-shadow:0 6px 16px rgba(10,42,140,.28);display:flex;align-items:center;justify-content:center;gap:8px}
+.submit:hover{filter:brightness(1.08)}
+.submit:disabled{opacity:.65;cursor:wait}
+.or{margin:26px 0 18px;display:flex;align-items:center;gap:12px;font-size:10px;font-weight:600;letter-spacing:.08em;color:#8a8fa8}
+.or::before,.or::after{content:"";flex:1;height:1px;background:#e0e2f0}
+.social{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.social button{height:42px;border:1px solid #e6e7f3;border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:center;gap:8px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text)}
+.social button:hover{background:#f3f4fc}
+.signup{margin-top:34px;text-align:center;font-size:12px;color:var(--muted)}
+.signup a{font-weight:700;color:var(--navy);text-decoration:none}
+.signup a:hover{text-decoration:underline}
+button:focus-visible,a:focus-visible,input[type=checkbox]:focus-visible{outline:2px solid var(--navy-2);outline-offset:2px}
+.toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);background:#191a2e;color:#fff;padding:11px 18px;border-radius:8px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:5}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media (max-width:900px){
+  body{grid-template-columns:1fr}
+  .hero{display:none}
+  .m-logo{display:block}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <!-- hình nền kho hàng giả bằng SVG; muốn dùng ảnh thật thì thay <svg class="bg"> bằng background-image -->
+  <svg class="bg" viewBox="0 0 400 700" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs>
+      <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0a2a8c" stop-opacity=".1"/><stop offset=".5" stop-color="#0a2a8c" stop-opacity="0"/><stop offset="1" stop-color="#0a2a8c" stop-opacity=".55"/></linearGradient>
+      <radialGradient id="glow" cx=".5" cy=".42" r=".5"><stop offset="0" stop-color="#7f9cff" stop-opacity=".35"/><stop offset="1" stop-color="#7f9cff" stop-opacity="0"/></radialGradient>
+    </defs>
+    <rect width="400" height="700" fill="url(#glow)"/>
+    <g fill="#fff" fill-opacity=".07">
+      <polygon points="0,40 150,250 150,430 0,640"/>
+      <polygon points="400,40 250,250 250,430 400,640"/>
+    </g>
+    <g stroke="#fff" stroke-opacity=".16" stroke-width="2" fill="none">
+      <path d="M0 140L150 285M0 250L150 330M0 360L150 375M0 470L150 420M0 580L150 465"/>
+      <path d="M400 140L250 285M400 250L250 330M400 360L250 375M400 470L250 420M400 580L250 465"/>
+    </g>
+    <g fill="#fff" fill-opacity=".10">
+      <rect x="22" y="152" width="40" height="46" rx="2"/><rect x="74" y="190" width="34" height="38" rx="2"/>
+      <rect x="20" y="268" width="46" height="50" rx="2"/><rect x="82" y="290" width="30" height="34" rx="2"/>
+      <rect x="338" y="152" width="40" height="46" rx="2"/><rect x="292" y="190" width="34" height="38" rx="2"/>
+      <rect x="334" y="268" width="46" height="50" rx="2"/><rect x="288" y="290" width="30" height="34" rx="2"/>
+    </g>
+    <polygon points="150,430 250,430 400,700 0,700" fill="#fff" fill-opacity=".05"/>
+    <rect width="400" height="700" fill="url(#fade)"/>
+  </svg>
+
+  <div class="logo">
+    <i><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0a2a8c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6h11v10H2zM13 9h4l3 3v4h-7"/><circle cx="6.5" cy="17.5" r="1.8" fill="#0a2a8c"/><circle cx="16.5" cy="17.5" r="1.8" fill="#0a2a8c"/></svg></i>
+    LogisticsPro
+  </div>
+
+  <div>
+    <h2>Chuyên nghiệp hóa mọi điểm chạm giao vận.</h2>
+    <p class="lead">Hệ thống quản lý chuỗi cung ứng tối ưu, kết nối liền mạch giữa Khách hàng, Shipper và Đội ngũ Admin.</p>
+    <div class="stats">
+      <div><b>1.2M+</b><span>ĐƠN HÀNG/THÁNG</span></div>
+      <div><b>99.9%</b><span>TỶ LỆ CHÍNH XÁC</span></div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>© 2024 LogisticsPro Corp.</span>
+    <a href="#">Điều khoản dịch vụ</a>
+    <a href="#">Chính sách bảo mật</a>
+  </div>
+</section>
+
+<main class="panel">
+  <div class="box">
+    <div class="m-logo">LogisticsPro</div>
+    <h1>Chào mừng trở lại</h1>
+    <p class="sub">Vui lòng chọn vai trò và đăng nhập vào hệ thống</p>
+
+    <div class="roles" id="roles" role="radiogroup" aria-label="Vai trò">
+      <button type="button" role="radio" aria-checked="true" data-role="customer">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
+        Khách hàng
+      </button>
+      <button type="button" role="radio" aria-checked="false" data-role="shipper">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3.5"/><path d="M2 20c0-3.5 2.7-6 6-6M14 15l3 3 5-6"/></svg>
+        Shipper
+      </button>
+      <button type="button" role="radio" aria-checked="false" data-role="admin">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 3v6c0 5-3.4 9.3-8 11-4.6-1.7-8-6-8-11V5z"/><path d="M9 12l2 2 4-4"/></svg>
+        Admin
+      </button>
+    </div>
+
+    <form id="form" novalidate>
+      <div class="field">
+        <label for="id">EMAIL HOẶC SỐ ĐIỆN THOẠI</label>
+        <div class="input">
+          <span class="l"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></span>
+          <input id="id" name="identifier" type="text" autocomplete="username" placeholder="name@company.com" required>
+        </div>
+      </div>
+      <div class="field">
+        <label for="pw">MẬT KHẨU</label>
+        <div class="input">
+          <span class="l"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span>
+          <input id="pw" name="password" type="password" autocomplete="current-password" placeholder="••••••••" required>
+          <button type="button" class="r" id="eye" aria-label="Hiện mật khẩu">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="opts">
+        <label><input type="checkbox" id="remember"> Ghi nhớ đăng nhập</label>
+        <a href="#" id="forgot">Quên mật khẩu?</a>
+      </div>
+
+      <div class="err" id="err" role="alert" hidden></div>
+
+      <button class="submit" id="submit" type="submit">
+        <span id="submitText">Đăng nhập vào hệ thống</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+    </form>
+
+    <div class="or">HOẶC TIẾP TỤC VỚI</div>
+    <div class="social">
+      <button type="button" data-social="Google">
+        <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.07H2.18a11 11 0 0 0 0 9.86z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z"/></svg>
+        Google
+      </button>
+      <button type="button" data-social="Facebook">
+        <svg width="16" height="16" viewBox="0 0 24 24"><rect width="24" height="24" rx="5" fill="#1877f2"/><path fill="#fff" d="M16.5 12.5h-2.3V20h-3v-7.5H9.5V10h1.7V8.6c0-2 1-3.1 3.1-3.1h2.2V8h-1.4c-.7 0-.9.3-.9.9V10h2.4z"/></svg>
+        Facebook
+      </button>
+    </div>
+
+    <p class="signup">Chưa có tài khoản? <a href="register.html" id="signup">Đăng ký ngay</a></p>
+  </div>
+</main>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* =====================================================================
+   NOTE CHO AI NỐI BACKEND  (đọc kỹ phần này)
+   ---------------------------------------------------------------------
+   Hiện tại USE_MOCK = true -> chạy dữ liệu giả (mật khẩu >= 6 ký tự là đăng nhập được).
+   Khi nối thật: USE_MOCK = false, chỉnh API_BASE, rồi sửa hàm `api.login` nếu cần.
+
+   API dùng trong trang này:
+   POST {API_BASE}/api/v1/auth/login   -> UserResponseDto
+     * Controller nhận `Authentication authentication` và gọi authentication.getName()
+       => nhiều khả năng backend dùng HTTP Basic. UI đang gửi:
+         header  Authorization: Basic base64(identifier:password), KHÔNG có body.
+       Nếu backend thực tế nhận JSON {identifier, password} thì sửa trong api.login.
+     * identifier = email hoặc số điện thoại (1 ô nhập duy nhất).
+   POST {API_BASE}/api/v1/auth/register -> UserResponseDto
+     * KHÔNG dùng ở trang này. Link "Đăng ký ngay" đang trỏ tới register.html (chưa làm).
+
+   Shape UserResponseDto UI ĐANG GIẢ ĐỊNH (map lại cho đúng DTO thật):
+     { userId, fullName, role: 'CUSTOMER'|'SHIPPER'|'ADMIN', accessToken }
+
+   Vai trò (tab Khách hàng/Shipper/Admin): API login KHÔNG nhận role.
+     UI chỉ so sánh `role` trong response với tab đã chọn; lệch thì báo lỗi.
+     Nếu backend không trả role hoặc muốn bỏ kiểm tra, xóa đoạn "ROLE CHECK".
+
+   Token: lưu vào key 'token' (+ 'user').
+     "Ghi nhớ đăng nhập" bật -> localStorage, tắt -> sessionStorage.
+     Trang cart.html đang đọc localStorage.getItem('token') -> cần sửa thành
+     localStorage.getItem('token') || sessionStorage.getItem('token').
+     (Nếu backend dùng cookie/session thay vì token thì bỏ phần lưu token.)
+
+   Chuyển trang sau khi đăng nhập: xem ROLE_ROUTE (TODO: đường dẫn trang của Shipper/Admin).
+   Đăng nhập Google/Facebook và "Quên mật khẩu": CHƯA có API, chỉ hiện thông báo.
+   ===================================================================== */
+const USE_MOCK = true;
+const API_BASE = 'http://localhost:8080';
+const ROLE_CODE  = {customer:'CUSTOMER', shipper:'SHIPPER', admin:'ADMIN'};
+const ROLE_LABEL = {customer:'Khách hàng', shipper:'Shipper', admin:'Admin'};
+const ROLE_ROUTE = {customer:'cart.html', shipper:'shipper.html', admin:'admin.html'}; // TODO
+
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const b64 = s => btoa(String.fromCharCode(...new TextEncoder().encode(s))); // an toàn với ký tự Unicode
+
+const api = {
+  async login(identifier, password, roleTab){
+    if(USE_MOCK){
+      await wait(600);
+      if(password.length < 6) throw new Error('Email/số điện thoại hoặc mật khẩu không đúng.');
+      return {userId:'u1', fullName:'Người dùng demo', role:ROLE_CODE[roleTab], accessToken:'mock-token'};
+    }
+    const res = await fetch(API_BASE + '/api/v1/auth/login', {
+      method:'POST',
+      headers:{'Authorization':'Basic ' + b64(identifier + ':' + password)}
+    });
+    if(res.status === 401) throw new Error('Email/số điện thoại hoặc mật khẩu không đúng.');
+    if(!res.ok) throw new Error('Đăng nhập thất bại (' + res.status + '). Vui lòng thử lại.');
+    return res.json();
+  }
+};
+
+/* ---------------- UI ---------------- */
+const $ = id => document.getElementById(id);
+let role = 'customer';
+let toastTimer;
+function toast(msg){
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+}
+function showErr(msg, field){
+  const e = $('err'); e.textContent = msg; e.hidden = false;
+  ['id','pw'].forEach(i => $(i).classList.remove('bad'));
+  if(field){ $(field).classList.add('bad'); $(field).focus(); }
+}
+function clearErr(){ $('err').hidden = true; ['id','pw'].forEach(i => $(i).classList.remove('bad')); }
+
+$('roles').addEventListener('click', e => {
+  const b = e.target.closest('button[data-role]'); if(!b) return;
+  role = b.dataset.role;
+  document.querySelectorAll('#roles button').forEach(x => x.setAttribute('aria-checked', String(x === b)));
+  clearErr();
+});
+
+$('eye').addEventListener('click', () => {
+  const show = $('pw').type === 'password';
+  $('pw').type = show ? 'text' : 'password';
+  $('eye').setAttribute('aria-label', show ? 'Ẩn mật khẩu' : 'Hiện mật khẩu');
+});
+
+$('forgot').addEventListener('click', e => { e.preventDefault(); toast('Tính năng quên mật khẩu chưa được hỗ trợ.'); });
+document.querySelectorAll('[data-social]').forEach(b =>
+  b.addEventListener('click', () => toast('Đăng nhập bằng ' + b.dataset.social + ' chưa được hỗ trợ.')));
+['id','pw'].forEach(i => $(i).addEventListener('input', clearErr));
+
+$('form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const identifier = $('id').value.trim(), password = $('pw').value;
+  const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
+  const isPhone = /^(\+?84|0)\d{9,10}$/.test(identifier.replace(/[\s.-]/g, ''));
+  if(!identifier) return showErr('Vui lòng nhập email hoặc số điện thoại.', 'id');
+  if(!isEmail && !isPhone) return showErr('Email hoặc số điện thoại không hợp lệ.', 'id');
+  if(!password) return showErr('Vui lòng nhập mật khẩu.', 'pw');
+  clearErr();
+
+  const btn = $('submit'); btn.disabled = true; $('submitText').textContent = 'Đang đăng nhập…';
+  try{
+    const user = await api.login(identifier, password, role);
+
+    /* ROLE CHECK (xóa nếu backend không trả role) */
+    if(user.role && user.role !== ROLE_CODE[role])
+      throw new Error('Tài khoản này không thuộc vai trò ' + ROLE_LABEL[role] + '. Vui lòng chọn đúng vai trò.');
+
+    const store = $('remember').checked ? localStorage : sessionStorage;
+    try{
+      store.setItem('token', user.accessToken);
+      store.setItem('user', JSON.stringify(user));
+    }catch(_){}
+
+    toast('Đăng nhập thành công');
+    if(USE_MOCK) toast('Đăng nhập thành công (demo, sẽ chuyển tới ' + ROLE_ROUTE[role] + ')');
+    else setTimeout(() => { location.href = ROLE_ROUTE[role]; }, 600);
+  }catch(err){
+    showErr(err.message);
+  }
+  btn.disabled = false; $('submitText').textContent = 'Đăng nhập vào hệ thống';
+});
+</script>
+</body>
+</html>

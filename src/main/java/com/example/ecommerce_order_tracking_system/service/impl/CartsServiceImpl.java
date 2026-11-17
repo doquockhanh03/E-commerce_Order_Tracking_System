@@ -1,5 +1,6 @@
 package com.example.ecommerce_order_tracking_system.service.impl;
 
+import com.example.ecommerce_order_tracking_system.common.enums.ErrorCode;
 import com.example.ecommerce_order_tracking_system.dto.request.AddToCartReqDto;
 import com.example.ecommerce_order_tracking_system.dto.request.CartItemActionReqDto;
 import com.example.ecommerce_order_tracking_system.dto.response.CartItemsResDto;
@@ -8,6 +9,7 @@ import com.example.ecommerce_order_tracking_system.entity.order.CartItems;
 import com.example.ecommerce_order_tracking_system.entity.order.Carts;
 import com.example.ecommerce_order_tracking_system.entity.product.ProductImages;
 import com.example.ecommerce_order_tracking_system.entity.product.ProductVariants;
+import com.example.ecommerce_order_tracking_system.exception.BusinessException;
 import com.example.ecommerce_order_tracking_system.repository.order.CartItemsRepo;
 import com.example.ecommerce_order_tracking_system.repository.order.CartsRepo;
 import com.example.ecommerce_order_tracking_system.service.CartsService;
@@ -37,21 +39,21 @@ public class CartsServiceImpl implements CartsService {
     public CartsResDto updateCartItemQuantity(String userId, String cartItemId, CartItemActionReqDto request) {
         if(cartItemId == null || cartItemId.isBlank() || request == null
                 || (request.getQuantity() == null && (request.getAction() == null || request.getAction().isBlank()))){
-            throw new IllegalArgumentException("Invalid parameters");
+            throw new BusinessException(ErrorCode.INVALID_PARAMETER_TYPE, "Invalid parameters");
         }
 
         Optional<Carts> cartsOptional = cartsRepo.getByUserId(userId);
         if (cartsOptional.isEmpty()) {
-            throw new RuntimeException("Cart is empty!");
+            throw new  BusinessException(ErrorCode.CART_EMPTY, "Cart is empty!");
         }
 
         Optional<CartItems> cartItemsOptional = cartItemsRepo.findById(cartItemId);
         if (cartItemsOptional.isEmpty()) {
-            throw new RuntimeException("Cart item not found!");
+            throw new BusinessException(ErrorCode.CART_ITEM_NOT_FOUND, "Cart item not found!");
         }
 
         if(!cartItemsOptional.get().getCart().getId().equals(cartsOptional.get().getId())){
-            throw new RuntimeException("Cart item not match!");
+            throw new BusinessException(ErrorCode.CART_ITEM_NOT_MATCHED, "Cart item not match!");
         }
 
         int quantityInStock = cartItemsOptional.get().getProductVariant().getInventory().getQuantityInStock();
@@ -60,7 +62,7 @@ public class CartsServiceImpl implements CartsService {
 
         if(request.getQuantity() != null && request.getQuantity() > 0){
             if(quantityInStock - reservedQuantity <= 0){
-                throw new RuntimeException("OUT OF STOCK");
+                throw new BusinessException(ErrorCode.OUT_OF_STOCK, "OUT OF STOCK");
             }
             else if((quantityInStock - reservedQuantity) >= request.getQuantity()){
                 cartItemsOptional.get().setQuantity(request.getQuantity());
@@ -78,12 +80,9 @@ public class CartsServiceImpl implements CartsService {
                     cartItemsOptional.get().setQuantity(cartItemsOptional.get().getQuantity() - 1);
                 }
             }else {
-                throw new IllegalArgumentException("Invalid action!");
+                throw new BusinessException(ErrorCode.INVALID_ACTION, "Invalid action!");
             }
         }
-
-
-
 
         return getCartDetail(userId);
     }
@@ -92,12 +91,12 @@ public class CartsServiceImpl implements CartsService {
     public CartsResDto getCartDetail(String userId) {
 
         if(userId == null || userId.isBlank()){
-            throw new RuntimeException("User not found!");
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND, "User not found!");
         }
 
         Optional<Carts> cartsOptional = cartsRepo.getByUserId(userId);
         if (cartsOptional.isEmpty()) {
-            throw new RuntimeException("Cart is empty!");
+            throw new BusinessException(ErrorCode.CART_EMPTY, "Cart is empty!");
         }
 
         List<CartItems> cartItemsList = cartItemsRepo.getCartItemsWithDetails(cartsOptional.get().getId());
@@ -114,6 +113,7 @@ public class CartsServiceImpl implements CartsService {
     private CartItemsResDto createCartItemsResDto(CartItems items, ProductVariants productVariants) {
         CartItemsResDto cartItemsResDto = new CartItemsResDto();
 
+        cartItemsResDto.setCartItemId(items.getId());
         cartItemsResDto.setProductName(productVariants.getProduct().getName());
         cartItemsResDto.setVariantName(productVariants.getName());
         cartItemsResDto.setQuantity(items.getQuantity());

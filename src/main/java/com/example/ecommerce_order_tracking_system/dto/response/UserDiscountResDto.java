@@ -14,15 +14,17 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 public class UserDiscountResDto {
-    String voucherCode;
+    private String voucherId;
 
-    VoucherType voucherType;
+    private String voucherCode;
 
-    String description;
+    private VoucherType voucherType;
 
-    BigDecimal discountValue;
+    private String description;
 
-    BigDecimal minOrderAmount;
+    private BigDecimal discountValue;
 
-    VoucherStatus voucherStatus;
+    private BigDecimal minOrderAmount;
+
+    private VoucherStatus voucherStatus;
 }

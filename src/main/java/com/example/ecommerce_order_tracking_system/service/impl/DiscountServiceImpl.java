@@ -1,9 +1,11 @@
 package com.example.ecommerce_order_tracking_system.service.impl;
 
+import com.example.ecommerce_order_tracking_system.common.enums.ErrorCode;
 import com.example.ecommerce_order_tracking_system.common.enums.UserVoucherStatus;
 import com.example.ecommerce_order_tracking_system.dto.response.ListUserDiscountResDto;
 import com.example.ecommerce_order_tracking_system.dto.response.UserDiscountResDto;
 import com.example.ecommerce_order_tracking_system.entity.order.UserVouchers;
+import com.example.ecommerce_order_tracking_system.exception.BusinessException;
 import com.example.ecommerce_order_tracking_system.repository.order.UserVouchersRepo;
 import com.example.ecommerce_order_tracking_system.service.DiscountService;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +26,7 @@ public class DiscountServiceImpl implements DiscountService {
 
         List<UserVouchers> userVouchersList = userVouchersRepo.getUserVoucherWithDetail(userId);
         if (userVouchersList.isEmpty()) {
-            throw new RuntimeException("No available vouchers!");
+            throw new BusinessException(ErrorCode.INVALID_ACTION, "No available vouchers!");
         }
 
         List<UserDiscountResDto> userDiscountResDtoList = new ArrayList<>();
@@ -41,6 +43,7 @@ public class DiscountServiceImpl implements DiscountService {
     private static @NonNull UserDiscountResDto createUserDiscountResDto(UserVouchers vouchers) {
         UserDiscountResDto userDiscountResDto = new UserDiscountResDto();
 
+        userDiscountResDto.setVoucherId(vouchers.getVoucher().getId());
         userDiscountResDto.setVoucherCode(vouchers.getVoucher().getVoucherCode());
         userDiscountResDto.setDiscountValue(vouchers.getVoucher().getDiscountValue());
         userDiscountResDto.setMinOrderAmount(vouchers.getVoucher().getMinOrderAmount());

@@ -3,14 +3,12 @@ package com.example.ecommerce_order_tracking_system.service.impl;
 import com.example.ecommerce_order_tracking_system.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Profile;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-@Profile("mail")
 @Slf4j
 public class EmailServiceImpl implements EmailService {
 

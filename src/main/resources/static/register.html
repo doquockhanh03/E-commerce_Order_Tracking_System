@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Đăng ký - LogisticsPro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0a2a8c; --navy-2:#1a3fb5; --bg:#f8f8fd; --field:#dfe3fc; --text:#191a2e; --muted:#5d6076; --red:#c4161c;
+  --font:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --head:'Manrope','Inter',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);color:var(--text);background:var(--bg);min-height:100vh;display:grid;grid-template-columns:1fr 1fr}
+button,input,select{font-family:inherit}
+a{color:inherit}
+
+/* left hero (đứng yên khi form dài cuộn) */
+.hero{position:sticky;top:0;align-self:start;height:100vh;overflow:hidden;color:#fff;background:linear-gradient(160deg,#0a2a8c 0%,#0d34a8 55%,#0a2a8c 100%);display:flex;flex-direction:column;justify-content:space-between;padding:32px 36px}
+.hero svg.bg{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+.hero>*:not(.bg){position:relative;z-index:1}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--head);font-weight:800;font-size:18px}
+.logo i{width:28px;height:28px;border-radius:6px;background:#fff;display:grid;place-items:center}
+.hero h2{font-family:var(--head);font-weight:800;font-size:clamp(30px,3.3vw,42px);line-height:1.22;letter-spacing:-.02em;max-width:420px}
+.hero .lead{margin-top:18px;font-size:13px;line-height:1.65;color:#c9d4f7;max-width:340px}
+.stats{margin-top:36px;display:flex;gap:56px}
+.stats b{display:block;font-family:var(--head);font-weight:800;font-size:24px}
+.stats span{display:block;margin-top:4px;font-size:10px;font-weight:600;letter-spacing:.08em;color:#b4c3f4}
+.foot{display:flex;gap:18px;flex-wrap:wrap;font-size:11px;color:#b4c3f4}
+.foot a{text-decoration:none}.foot a:hover{color:#fff}
+
+/* right form */
+.panel{display:flex;align-items:center;justify-content:center;padding:40px 24px}
+.box{width:100%;max-width:420px}
+.m-logo{display:none;font-family:var(--head);font-weight:800;font-size:18px;color:var(--navy);margin-bottom:24px}
+h1{font-family:var(--head);font-weight:800;font-size:26px;letter-spacing:-.02em}
+.sub{margin-top:6px;font-size:13px;color:var(--muted)}
+.field{margin-top:16px}
+.field label{display:block;font-size:10px;font-weight:700;letter-spacing:.07em;color:#4a4f68;margin-bottom:6px}
+.input{position:relative}
+.input input{width:100%;height:46px;padding:0 42px;border:2px solid transparent;border-radius:8px;background:var(--field);font-size:14px;color:var(--text);outline:0;transition:border-color .15s,background .15s}
+.input input::placeholder{color:#7c82a3}
+.input input:focus{border-color:var(--navy-2);background:#e6e9fd}
+.input input.bad{border-color:#d92d20}
+.input .l,.input .r{position:absolute;top:0;height:100%;display:grid;place-items:center;width:42px;color:#6a7094}
+.input .l{left:0;pointer-events:none}
+.input .r{right:0;background:none;border:0;cursor:pointer}
+.input .r:hover{color:var(--navy)}
+/* hàng 2 cột: họ + tên / ngày sinh + giới tính */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid2 .field{margin-top:16px}
+select.input-sel{width:100%;height:46px;padding:0 12px;border:2px solid transparent;border-radius:8px;background:var(--field);font-size:14px;color:var(--text);outline:0;cursor:pointer;transition:border-color .15s,background .15s}
+select.input-sel:focus{border-color:var(--navy-2);background:#e6e9fd}
+select.input-sel.bad{border-color:#d92d20}
+.hint{margin-top:5px;font-size:11px;color:#7c82a3}
+.fe{margin-top:5px;font-size:11px;font-weight:500;color:var(--red)}
+.fe:empty{display:none}
+.terms{margin-top:18px;display:flex;align-items:flex-start;gap:8px;font-size:12px;color:var(--muted);cursor:pointer;line-height:1.5}
+.terms input{width:15px;height:15px;margin-top:2px;accent-color:var(--navy);flex:none}
+.terms a{font-weight:700;color:var(--navy);text-decoration:none}
+.terms a:hover{text-decoration:underline}
+.err{margin-top:14px;padding:10px 12px;border-radius:8px;background:#ffe3e0;color:#a3171a;font-size:12px;line-height:1.45}
+.err[hidden]{display:none}
+.submit{margin-top:20px;width:100%;height:48px;border:0;border-radius:8px;cursor:pointer;color:#fff;font-weight:700;font-size:14px;background:linear-gradient(180deg,var(--navy-2),var(--navy));box-shadow:0 6px 16px rgba(10,42,140,.28);display:flex;align-items:center;justify-content:center;gap:8px}
+.submit:hover{filter:brightness(1.08)}
+.submit:disabled{opacity:.65;cursor:wait}
+.or{margin:26px 0 18px;display:flex;align-items:center;gap:12px;font-size:10px;font-weight:600;letter-spacing:.08em;color:#8a8fa8}
+.or::before,.or::after{content:"";flex:1;height:1px;background:#e0e2f0}
+.social{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.social button{height:42px;border:1px solid #e6e7f3;border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:center;gap:8px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text)}
+.social button:hover{background:#f3f4fc}
+.signup{margin-top:30px;text-align:center;font-size:12px;color:var(--muted)}
+.signup a{font-weight:700;color:var(--navy);text-decoration:none}
+.signup a:hover{text-decoration:underline}
+button:focus-visible,a:focus-visible,input[type=checkbox]:focus-visible,select:focus-visible{outline:2px solid var(--navy-2);outline-offset:2px}
+.toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);background:#191a2e;color:#fff;padding:11px 18px;border-radius:8px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:5}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media (max-width:900px){
+  body{grid-template-columns:1fr}
+  .hero{display:none}
+  .m-logo{display:block}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <svg class="bg" viewBox="0 0 400 700" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs>
+      <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0a2a8c" stop-opacity=".1"/><stop offset=".5" stop-color="#0a2a8c" stop-opacity="0"/><stop offset="1" stop-color="#0a2a8c" stop-opacity=".55"/></linearGradient>
+      <radialGradient id="glow" cx=".5" cy=".42" r=".5"><stop offset="0" stop-color="#7f9cff" stop-opacity=".35"/><stop offset="1" stop-color="#7f9cff" stop-opacity="0"/></radialGradient>
+    </defs>
+    <rect width="400" height="700" fill="url(#glow)"/>
+    <g fill="#fff" fill-opacity=".07">
+      <polygon points="0,40 150,250 150,430 0,640"/>
+      <polygon points="400,40 250,250 250,430 400,640"/>
+    </g>
+    <g stroke="#fff" stroke-opacity=".16" stroke-width="2" fill="none">
+      <path d="M0 140L150 285M0 250L150 330M0 360L150 375M0 470L150 420M0 580L150 465"/>
+      <path d="M400 140L250 285M400 250L250 330M400 360L250 375M400 470L250 420M400 580L250 465"/>
+    </g>
+    <g fill="#fff" fill-opacity=".10">
+      <rect x="22" y="152" width="40" height="46" rx="2"/><rect x="74" y="190" width="34" height="38" rx="2"/>
+      <rect x="20" y="268" width="46" height="50" rx="2"/><rect x="82" y="290" width="30" height="34" rx="2"/>
+      <rect x="338" y="152" width="40" height="46" rx="2"/><rect x="292" y="190" width="34" height="38" rx="2"/>
+      <rect x="334" y="268" width="46" height="50" rx="2"/><rect x="288" y="290" width="30" height="34" rx="2"/>
+    </g>
+    <polygon points="150,430 250,430 400,700 0,700" fill="#fff" fill-opacity=".05"/>
+    <rect width="400" height="700" fill="url(#fade)"/>
+  </svg>
+
+  <div class="logo">
+    <i><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0a2a8c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6h11v10H2zM13 9h4l3 3v4h-7"/><circle cx="6.5" cy="17.5" r="1.8" fill="#0a2a8c"/><circle cx="16.5" cy="17.5" r="1.8" fill="#0a2a8c"/></svg></i>
+    LogisticsPro
+  </div>
+
+  <div>
+    <h2>Bắt đầu hành trình giao vận cùng chúng tôi.</h2>
+    <p class="lead">Tạo tài khoản để đặt đơn, nhận đơn giao và theo dõi toàn bộ chuỗi cung ứng trên một nền tảng duy nhất.</p>
+    <div class="stats">
+      <div><b>1.2M+</b><span>ĐƠN HÀNG/THÁNG</span></div>
+      <div><b>99.9%</b><span>TỶ LỆ CHÍNH XÁC</span></div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>© 2024 LogisticsPro Corp.</span>
+    <a href="#">Điều khoản dịch vụ</a>
+    <a href="#">Chính sách bảo mật</a>
+  </div>
+</section>
+
+<main class="panel">
+  <div class="box">
+    <div class="m-logo">LogisticsPro</div>
+    <h1>Tạo tài khoản mới</h1>
+    <p class="sub">Điền thông tin để tạo tài khoản khách hàng</p>
+
+    <form id="form" novalidate>
+      <div class="grid2">
+        <div class="field">
+          <label for="lastName">HỌ</label>
+          <div class="input">
+            <span class="l"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg></span>
+            <input id="lastName" type="text" autocomplete="family-name" placeholder="Nguyễn">
+          </div>
+          <p class="fe" data-for="lastName"></p>
+        </div>
+        <div class="field">
+          <label for="firstName">TÊN</label>
+          <div class="input">
+            <span class="l"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg></span>
+            <input id="firstName" type="text" autocomplete="given-name" placeholder="Văn A">
+          </div>
+          <p class="fe" data-for="firstName"></p>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="username">TÊN ĐĂNG NHẬP</label>
+        <div class="input">
+          <span class="l"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+          <input id="username" type="text" autocomplete="username" placeholder="khanhdn">
+        </div>
+        <p class="fe" data-for="username"></p>
+      </div>
+
+      <div class="field">
+        <label for="email">EMAIL</label>
+        <div class="input">
+          <span class="l"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></span>
+          <input id="email" type="email" autocomplete="email" placeholder="name@company.com">
+        </div>
+        <p class="fe" data-for="email"></p>
+      </div>
+
+      <div class="field">
+        <label for="phone">SỐ ĐIỆN THOẠI</label>
+        <div class="input">
+          <span class="l"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg></span>
+          <input id="phone" type="tel" autocomplete="tel" placeholder="0912 345 678">
+        </div>
+        <p class="fe" data-for="phone"></p>
+      </div>
+
+      <div class="grid2">
+        <div class="field">
+          <label for="dob">NGÀY SINH</label>
+          <div class="input">
+            <span class="l"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>
+            <input id="dob" type="text" inputmode="numeric" placeholder="dd/mm/yyyy" maxlength="10">
+          </div>
+          <p class="fe" data-for="dob"></p>
+        </div>
+        <div class="field">
+          <label for="gender">GIỚI TÍNH</label>
+          <div class="input">
+            <span class="l"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 20a8 8 0 1 0-16 0"/></svg></span>
+            <select id="gender" class="input-sel" style="padding-left:42px">
+              <option value="">-- Chọn --</option>
+              <option value="MALE">Nam</option>
+              <option value="FEMALE">Nữ</option>
+              <option value="OTHER">Khác</option>
+            </select>
+          </div>
+          <p class="fe" data-for="gender"></p>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="pw">MẬT KHẨU</label>
+        <div class="input">
+          <span class="l"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span>
+          <input id="pw" type="password" autocomplete="new-password" placeholder="••••••••">
+          <button type="button" class="r" data-eye="pw" aria-label="Hiện mật khẩu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </div>
+        <p class="hint">Tối thiểu 8 ký tự, gồm cả chữ và số</p>
+        <p class="fe" data-for="pw"></p>
+      </div>
+
+      <div class="field">
+        <label for="pw2">XÁC NHẬN MẬT KHẨU</label>
+        <div class="input">
+          <span class="l"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span>
+          <input id="pw2" type="password" autocomplete="new-password" placeholder="••••••••">
+          <button type="button" class="r" data-eye="pw2" aria-label="Hiện mật khẩu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </div>
+        <p class="fe" data-for="pw2"></p>
+      </div>
+
+      <label class="terms">
+        <input type="checkbox" id="agree">
+        <span>Tôi đồng ý với <a href="#">Điều khoản dịch vụ</a> và <a href="#">Chính sách bảo mật</a> của LogisticsPro.</span>
+      </label>
+      <p class="fe" data-for="agree"></p>
+
+      <div class="err" id="err" role="alert" hidden></div>
+
+      <button class="submit" id="submit" type="submit">
+        <span id="submitText">Tạo tài khoản</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+    </form>
+
+    <div class="or">HOẶC ĐĂNG KÝ VỚI</div>
+    <div class="social">
+      <button type="button" data-social="Google">
+        <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.07H2.18a11 11 0 0 0 0 9.86z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z"/></svg>
+        Google
+      </button>
+      <button type="button" data-social="Facebook">
+        <svg width="16" height="16" viewBox="0 0 24 24"><rect width="24" height="24" rx="5" fill="#1877f2"/><path fill="#fff" d="M16.5 12.5h-2.3V20h-3v-7.5H9.5V10h1.7V8.6c0-2 1-3.1 3.1-3.1h2.2V8h-1.4c-.7 0-.9.3-.9.9V10h2.4z"/></svg>
+        Facebook
+      </button>
+    </div>
+
+    <p class="signup">Đã có tài khoản? <a href="login.html">Đăng nhập</a></p>
+  </div>
+</main>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* =====================================================================
+   ĐÃ NỐI BACKEND THẬT (2026-11-17)
+   ---------------------------------------------------------------------
+   - Serve từ static/ của Spring Boot -> same-origin, API_BASE = ''.
+   - Trang này CHỈ đăng ký khách hàng: POST /api/v1/auth/register
+     (backend tự gán role BUYER — frontend không gửi role).
+     Shipper sẽ có API đăng ký riêng (backend chưa viết) -> khi có sẽ làm
+     trang đăng ký shipper riêng, không gộp vào đây.
+   - RegisterUserDto BẮT BUỘC: username, email, password (>= 8), firstName,
+     lastName, phoneNumber, dateOfBirth (dd/MM/yyyy), gender (MALE|FEMALE|OTHER)
+     -> form có đủ các ô tương ứng; "họ và tên" tách thành HỌ + TÊN riêng.
+   - Lỗi backend (ExceptionResponse):
+     * 400 errorCode EMAIL_ALREADY_EXISTS / PHONE_NUMBER_ALREADY_EXISTS
+       -> gắn vào đúng ô email / phone
+     * 400 MALFORMED_REQUEST + errors map (validation) -> gắn theo key field
+     * còn lại -> hiện ở banner err chung
+   ===================================================================== */
+const API_BASE = '';
+const REGISTER_API = '/api/v1/auth/register';
+
+const FIELDS = ['username','lastName','firstName','email','phone','dob','gender','pw','pw2','agree'];
+
+/* ---------------- UI helpers ---------------- */
+const $ = id => document.getElementById(id);
+let toastTimer;
+function toast(msg){
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+}
+function setFieldErr(id, msg){
+  const el = document.querySelector('.fe[data-for="' + id + '"]'); if(el) el.textContent = msg || '';
+  const inp = $(id); if(inp && inp.type !== 'checkbox') inp.classList.toggle('bad', !!msg);
+}
+function clearAll(){
+  FIELDS.forEach(i => setFieldErr(i, ''));
+  $('err').hidden = true;
+}
+function showServerError(msg){ const e = $('err'); e.textContent = msg; e.hidden = false; }
+
+/* ---------------- API ---------------- */
+async function register(payload, endpoint){
+  let res;
+  try{
+    res = await fetch(API_BASE + endpoint, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+  }catch(_){
+    throw new Error('Không kết nối được server. Ứng dụng đang chạy không?');
+  }
+  if(res.ok) return res.json();
+
+  // ExceptionResponse: { status, errorCode, message, errors: {field -> msg} }
+  let err = null;
+  try{ err = await res.json(); }catch(_){}
+  if(err){
+    if(err.errorCode === 'EMAIL_ALREADY_EXISTS'){
+      const e = new Error('Email này đã được sử dụng.'); e.field = 'email'; throw e;
+    }
+    if(err.errorCode === 'PHONE_NUMBER_ALREADY_EXISTS'){
+      const e = new Error('Số điện thoại này đã được sử dụng.'); e.field = 'phone'; throw e;
+    }
+    if(err.errors){
+      // MethodArgumentNotValidException: map từng field về đúng ô nhập
+      const map = {username:'username', email:'email', password:'pw',
+                   firstName:'firstName', lastName:'lastName', phoneNumber:'phone',
+                   dateOfBirth:'dob', gender:'gender'};
+      const keys = Object.keys(err.errors);
+      const e = new Error(keys.length ? err.errors[keys[0]] : 'Dữ liệu không hợp lệ.');
+      e.fields = keys.map(k => ({ui: map[k], msg: err.errors[k]})).filter(x => x.ui);
+      throw e;
+    }
+    if(err.message) throw new Error(err.message);
+  }
+  throw new Error('Đăng ký thất bại (' + res.status + ').');
+}
+
+/* ---------------- Events ---------------- */
+document.querySelectorAll('[data-eye]').forEach(btn => btn.addEventListener('click', () => {
+  const inp = $(btn.dataset.eye), show = inp.type === 'password';
+  inp.type = show ? 'text' : 'password';
+  btn.setAttribute('aria-label', show ? 'Ẩn mật khẩu' : 'Hiện mật khẩu');
+}));
+
+document.querySelectorAll('[data-social]').forEach(b =>
+  b.addEventListener('click', () => toast('Đăng ký bằng ' + b.dataset.social + ' chưa được hỗ trợ.')));
+FIELDS.forEach(i => $(i).addEventListener('input', () => { setFieldErr(i, ''); $('err').hidden = true; }));
+FIELDS.forEach(i => $(i).addEventListener('change', () => { setFieldErr(i, ''); $('err').hidden = true; }));
+
+/* auto format dd/mm/yyyy khi gõ */
+$('dob').addEventListener('input', e => {
+  let v = e.target.value.replace(/[^\d]/g, '').slice(0, 8);
+  if(v.length > 4) v = v.slice(0,2) + '/' + v.slice(2,4) + '/' + v.slice(4);
+  else if(v.length > 2) v = v.slice(0,2) + '/' + v.slice(2);
+  e.target.value = v;
+});
+
+function validate(){
+  const v = {
+    username:$('username').value.trim(),
+    lastName:$('lastName').value.trim(), firstName:$('firstName').value.trim(),
+    email:$('email').value.trim(),
+    phone:$('phone').value.replace(/[\s.-]/g, ''),
+    dob:$('dob').value.trim(), gender:$('gender').value,
+    pw:$('pw').value, pw2:$('pw2').value
+  };
+  const errs = {};
+  if(v.username.length < 5) errs.username = 'Tên đăng nhập cần tối thiểu 5 ký tự.';
+  if(v.lastName.length < 1) errs.lastName = 'Vui lòng nhập họ.';
+  if(v.firstName.length < 1) errs.firstName = 'Vui lòng nhập tên.';
+  if(!v.email) errs.email = 'Vui lòng nhập email.';
+  else if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.email)) errs.email = 'Email không hợp lệ.';
+  if(!v.phone) errs.phone = 'Vui lòng nhập số điện thoại.';
+  else if(!/^(\+?84|0)\d{9,10}$/.test(v.phone)) errs.phone = 'Số điện thoại không hợp lệ.';
+  if(!v.dob) errs.dob = 'Vui lòng nhập ngày sinh.';
+  else if(!/^\d{2}\/\d{2}\/\d{4}$/.test(v.dob)) errs.dob = 'Ngày sinh theo định dạng dd/mm/yyyy.';
+  if(!v.gender) errs.gender = 'Vui lòng chọn giới tính.';
+  if(v.pw.length < 8 || !/[A-Za-z]/.test(v.pw) || !/\d/.test(v.pw)) errs.pw = 'Mật khẩu cần tối thiểu 8 ký tự, gồm cả chữ và số.';
+  if(!v.pw2) errs.pw2 = 'Vui lòng nhập lại mật khẩu.';
+  else if(v.pw2 !== v.pw) errs.pw2 = 'Mật khẩu xác nhận không khớp.';
+  if(!$('agree').checked) errs.agree = 'Bạn cần đồng ý với điều khoản để tiếp tục.';
+  Object.entries(errs).forEach(([k, m]) => setFieldErr(k, m));
+  const first = Object.keys(errs)[0];
+  if(first) $(first).focus();
+  return first ? null : v;
+}
+
+$('form').addEventListener('submit', async e => {
+  e.preventDefault();
+  clearAll();
+  const v = validate(); if(!v) return;
+
+  const payload = {
+    username: v.username,
+    email: v.email,
+    password: v.pw,
+    firstName: v.firstName,
+    lastName: v.lastName,
+    phoneNumber: v.phone,
+    dateOfBirth: v.dob,           // dd/MM/yyyy — khớp @JsonFormat của RegisterUserDto
+    gender: v.gender              // MALE | FEMALE | OTHER
+  };
+
+  const btn = $('submit'); btn.disabled = true; $('submitText').textContent = 'Đang tạo tài khoản…';
+  try{
+    await register(payload, REGISTER_API);
+    toast('Đăng ký thành công. Đang chuyển tới trang đăng nhập…');
+    setTimeout(() => { location.href = 'login.html'; }, 1200);
+    return;
+  }catch(err){
+    if(err.fields) err.fields.forEach(f => setFieldErr(f.ui, f.msg));
+    if(err.field) setFieldErr(err.field, err.message);
+    showServerError(err.fields || err.field ? 'Vui lòng kiểm tra lại các ô được đánh dấu.' : err.message);
+  }
+  btn.disabled = false; $('submitText').textContent = 'Tạo tài khoản';
+});
+</script>
+</body>
+</html>

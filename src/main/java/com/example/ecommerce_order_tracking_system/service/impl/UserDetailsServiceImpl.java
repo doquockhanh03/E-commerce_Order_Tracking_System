@@ -33,14 +33,14 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             Optional<Users> users = usersRepo.findByEmail(identifier);
 
             if(users.isEmpty()){
-                throw new RuntimeException("user not found!");
+                throw new UsernameNotFoundException("user not found!");
             }
             user = users.get();
         }else if (identifier.matches("\\d+")){
             Optional<Users> users = usersRepo.findByPhoneNumber(identifier);
 
             if(users.isEmpty()){
-                throw new RuntimeException("user not found!");
+                throw new UsernameNotFoundException("user not found!");
             }
             user = users.get();
         }
@@ -48,7 +48,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             Optional<Users> users = usersRepo.findByUsername(identifier);
 
             if(users.isEmpty()){
-                throw new RuntimeException("user not found!");
+                throw new UsernameNotFoundException("user not found!");
             }
             user = users.get();
         }

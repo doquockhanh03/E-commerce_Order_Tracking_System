@@ -34,9 +34,10 @@ public class EmailNotificationJob {
                         "Cập nhật đơn hàng " + emails.getOrder().getTrackingNumber(),
                         "Đơn hàng của bạn đang trên đường giao!"
                 );
-                log.info("");
+                log.info("Cập nhật đơn hàng {}", emails.getOrder().getTrackingNumber());
                 emails.setStatus(EmailStatus.SENT);
             }catch (Exception e){
+                log.error("Failed to send email for order {}", emails.getOrder().getTrackingNumber(), e);
                 emails.setStatus(EmailStatus.FAILED);
             }
             emailNotificationsRepo.save(emails);

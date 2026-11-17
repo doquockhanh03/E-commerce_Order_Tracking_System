@@ -13,6 +13,8 @@ import java.math.BigDecimal;
 @Getter
 public class CartItemsResDto {
 
+    private String cartItemId;
+
     private String productName;
 
     private String VariantName;

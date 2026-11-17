@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your Cart - Logistics Precision</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f8f7ff; --card:#efedff; --card-2:#e4e1f8; --navy:#0a2a8c; --navy-2:#1a3fb5;
+  --text:#191a2e; --muted:#5d6076; --green:#12b76a; --amber:#f5a524; --red:#c4161c;
+  --font:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --head:'Manrope','Inter',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+button,select{font-family:inherit}
+.page{flex:1;width:100%;max-width:1080px;margin:0 auto;padding:40px 24px 32px;display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:36px;align-items:start}
+h1{font-family:var(--head);font-weight:800;font-size:32px;color:var(--navy);letter-spacing:-.02em}
+.sub{margin-top:6px;font-size:13px;color:var(--muted)}
+
+/* alert */
+.alert{margin-top:28px;display:flex;gap:10px;padding:14px 16px;border-radius:8px;background:#ffd1cc;border:1px solid #f6b9b2;color:#a3171a}
+.alert[hidden]{display:none}
+.alert .ico{flex:none;width:16px;height:16px;border-radius:50%;background:#8f1117;color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;margin-top:1px}
+.alert b{display:block;font-size:12px;margin-bottom:2px}
+.alert p{font-size:12px;line-height:1.5}
+.alert.shake{animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+
+/* items */
+.items{margin-top:22px;display:flex;flex-direction:column;gap:12px}
+.item{display:flex;align-items:center;gap:16px;padding:16px;border-radius:16px;background:var(--card)}
+.thumb{flex:none;width:66px;height:66px;border-radius:8px;overflow:hidden}
+.thumb svg,.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.info{flex:1;min-width:0}
+.name{font-family:var(--head);font-weight:700;font-size:15px}
+.sku{margin-top:3px;font-size:11px;color:var(--muted)}
+.qty{margin-top:10px;display:inline-flex;align-items:center;background:var(--card-2);border-radius:6px;padding:3px}
+.qty button{width:28px;height:28px;border:0;background:transparent;border-radius:4px;cursor:pointer;color:var(--text);display:grid;place-items:center}
+.qty button:hover:not(:disabled){background:#d5d1f1}
+.qty button:disabled{cursor:not-allowed;opacity:.4}
+.qty span{min-width:34px;text-align:center;font-size:13px;font-weight:600}
+.side{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:4px;align-self:stretch;justify-content:space-between}
+.price{font-family:var(--head);font-weight:800;font-size:17px;color:var(--navy)}
+.unit{font-size:9px;font-weight:600;letter-spacing:.08em;color:var(--muted);margin-top:-2px}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;font-size:9px;font-weight:700;letter-spacing:.07em;white-space:nowrap}
+.badge i{width:6px;height:6px;border-radius:50%}
+.b-in{background:#d4eadf;color:#1d4d3a}.b-in i{background:var(--green)}
+.b-low{background:#fdecc4;color:#7a5200}.b-low i{background:var(--amber)}
+.b-out{background:#ffd3cf;color:#8a1318}.b-out i{background:var(--red)}
+.item.out{background:#f3f1ff;border:1px dashed #c8c4e2}
+.item.out .name,.item.out .sku{color:#8a8da1}
+.item.out .price{color:#8a97d0}
+.item.out .thumb{opacity:.95}
+
+/* summary */
+.summary{padding:24px;border-radius:24px;background:#f1efff;box-shadow:0 12px 40px rgba(60,50,150,.08)}
+.summary h2{font-family:var(--head);font-weight:700;font-size:20px;margin-bottom:16px}
+.field{margin-bottom:10px}
+.field label{display:block;font-size:10px;font-weight:600;letter-spacing:.06em;color:var(--muted);margin-bottom:4px}
+.field select{width:100%;padding:9px 10px;border-radius:8px;border:1px solid #d6d2ee;background:#fff;font-size:12px;color:var(--text);cursor:pointer}
+.field select:focus-visible,button:focus-visible{outline:2px solid var(--navy-2);outline-offset:2px}
+.rows{margin-top:14px;display:flex;flex-direction:column;gap:12px;font-size:13px}
+.row{display:flex;justify-content:space-between;color:var(--muted)}
+.row b{color:var(--text);font-weight:700}
+.row b.green{color:var(--green)}
+.total{margin-top:16px;padding-top:14px;border-top:1px solid #dcd8f0}
+.total small{font-size:9px;font-weight:600;letter-spacing:.08em;color:var(--muted)}
+.total div{display:flex;justify-content:space-between;align-items:flex-end;margin-top:2px}
+.total strong{font-family:var(--head);font-weight:800;font-size:28px;color:var(--navy)}
+.total em{font-style:normal;font-size:9px;font-weight:600;color:var(--muted);margin-bottom:6px}
+.loading{opacity:.5;transition:opacity .15s}
+.place{margin-top:22px;width:100%;height:46px;border:0;border-radius:8px;cursor:pointer;color:#fff;font-weight:700;font-size:14px;background:linear-gradient(180deg,var(--navy-2),var(--navy));box-shadow:0 6px 16px rgba(10,42,140,.28);display:flex;align-items:center;justify-content:center;gap:8px}
+.place:hover{filter:brightness(1.08)}
+.place:disabled{opacity:.6;cursor:wait}
+.reval{margin:14px auto 0;display:flex;align-items:center;gap:8px;background:none;border:0;cursor:pointer;font-size:13px;font-weight:600;color:var(--text);padding:6px 10px;border-radius:6px}
+.reval:hover{background:#e6e3fa}
+.guarantee{margin-top:20px;display:flex;gap:10px;padding:14px;border-radius:8px;background:#dbe1ff}
+.guarantee svg{flex:none;margin-top:1px}
+.guarantee b{display:block;font-size:9px;letter-spacing:.08em;color:var(--navy);margin-bottom:3px}
+.guarantee p{font-size:11px;line-height:1.45;color:#46506f}
+
+/* bottom nav */
+.nav{background:#fff;display:flex;align-items:center;justify-content:space-between;padding:14px 24px;box-shadow:0 -1px 0 #ececf5}
+.brand{font-family:var(--head);font-weight:800;font-size:16px;color:var(--navy);letter-spacing:-.01em}
+.links{display:flex;gap:28px}
+.links a{font-size:13px;color:var(--muted);text-decoration:none}
+.links a:hover{color:var(--navy)}
+.tools{display:flex;align-items:center;gap:18px;color:#4b4f66}
+.tools button{background:none;border:0;cursor:pointer;display:grid;place-items:center;color:inherit}
+.avatar{width:24px;height:24px;border-radius:50%;background:#f08a5d;display:grid;place-items:center;overflow:hidden}
+
+.toast{position:fixed;left:50%;bottom:84px;transform:translate(-50%,20px);background:#191a2e;color:#fff;padding:11px 18px;border-radius:8px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;max-width:90vw}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media (max-width:860px){
+  .page{grid-template-columns:1fr;padding:24px 16px}
+  .links{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<main class="page">
+  <section>
+    <h1>Your Cart</h1>
+    <p class="sub">Review inventory status and finalize your shipment request.</p>
+
+    <div class="alert" id="alert" role="alert" hidden>
+      <span class="ico">!</span>
+      <div>
+        <b>Validation Error</b>
+        <p>Some items in your cart are currently out of stock. Please adjust quantities or remove unavailable products to proceed.</p>
+      </div>
+    </div>
+
+    <div class="items" id="items" aria-live="polite"></div>
+  </section>
+
+  <aside class="summary" id="summary">
+    <h2>Order Summary</h2>
+
+    <div class="field">
+      <label for="addr">SHIPPING ADDRESS</label>
+      <select id="addr"></select>
+    </div>
+    <div class="field">
+      <label for="carrier">CARRIER</label>
+      <select id="carrier"></select>
+    </div>
+    <div class="field">
+      <label for="pm">PAYMENT METHOD</label>
+      <select id="pm"></select>
+    </div>
+    <div class="field">
+      <label for="dv">DISCOUNT VOUCHER</label>
+      <select id="dv"></select>
+    </div>
+    <div class="field">
+      <label for="sv">SHIPPING VOUCHER</label>
+      <select id="sv"></select>
+    </div>
+
+    <div class="rows" id="rows">
+      <div class="row"><span>Subtotal</span><b id="sSub">-</b></div>
+      <div class="row"><span id="sDiscLabel">Bulk Discount (5%)</span><b class="green" id="sDisc">-</b></div>
+      <div class="row"><span>Expedited Shipping</span><b id="sShip">-</b></div>
+      <div class="row"><span>Shipping Discount</span><b class="green" id="sShipDisc">-</b></div>
+    </div>
+
+    <div class="total">
+      <small>TOTAL AMOUNT</small>
+      <div><strong id="sTotal">-</strong><em>VND</em></div>
+    </div>
+
+    <button class="place" id="place">
+      Place Order
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </button>
+    <button class="reval" id="reval">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v3H9zM9 14l2 2 4-4"/></svg>
+      Re-validate Inventory
+    </button>
+
+    <div class="guarantee">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="#0a2a8c"><path d="M12 2l8 3v6c0 5-3.4 9.3-8 11-4.6-1.7-8-6-8-11V5z"/><path d="M8.5 12l2.5 2.5L16 9.5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div>
+        <b>LOGISTICS GUARANTEE</b>
+        <p>Real-time inventory lock applied upon successful validation.</p>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<nav class="nav">
+  <span class="brand">Logistics Precision</span>
+  <div class="links">
+    <a href="#">Orders</a><a href="#">Shipments</a><a href="#">Analytics</a><a href="#">Customers</a>
+  </div>
+  <div class="tools">
+    <button aria-label="Notifications"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8M10 20a2 2 0 0 0 4 0"/></svg></button>
+    <button aria-label="Settings"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h0a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5h0a1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v0a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+    <span class="avatar" aria-label="Account"><svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="9.5" r="4" fill="#ffd9c2"/><path d="M4 24c0-5 3.5-8 8-8s8 3 8 8z" fill="#2fa59a"/></svg></span>
+  </div>
+</nav>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* =====================================================================
+   ĐÃ NỐI BACKEND THẬT (2026-11-17)
+   ---------------------------------------------------------------------
+   - Trang được serve từ Spring Boot static/ -> same-origin, không cần CORS.
+   - Auth: HTTP Basic (khanh@example.com) - header Authorization base64.
+   - 5 API đang dùng:
+       GET   /api/v1/carts/detail                          -> CartsResDto
+       PATCH /api/v1/carts/item/quantity/{cartItemId}       -> CartsResDto
+       GET   /api/v1/discounts/available                   -> ListUserDiscountResDto
+       GET   /api/v1/pricing/summary?cartItemIds=...        -> PricingSummaryResDto
+       POST  /api/v1/orders?cartItemIds=...                 -> OrderResDto
+   - Carrier + payment method + address: chưa có API list -> hardcode
+     theo seed data (GHN/GHTK/Viettel Post, COD/BANKING/MOMO, địa chỉ HCM).
+     Khi có API thật thì thay trong CARRIERS/PAYMENT_METHODS/ADDRESSES.
+   - Lỗi từ backend theo format ExceptionResponse (GlobalExceptionHandler):
+     { status, errorCode, message, timestamp, path } -> hiện message lên toast.
+   ===================================================================== */
+
+/* ---- Config ---- */
+const API_BASE = '';
+// Ưu tiên credentials lưu từ login.html (localStorage/sessionStorage key 'auth'),
+// fallback account demo nếu mở cart.html trực tiếp chưa đăng nhập.
+const savedAuth = localStorage.getItem('auth') || sessionStorage.getItem('auth');
+const AUTH = savedAuth ? 'Basic ' + savedAuth : 'Basic ' + btoa('khanh@example.com:Password123@');
+
+/* ---- Hardcode data (thay bằng API khi có) ---- */
+const ADDRESSES = [
+  {id:'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa3', label:'Tran Thi B - To 10, Phuong 1, Ho Chi Minh'}
+];
+const CARRIERS = [
+  {id:'b0000000-0000-0000-0000-000000000001', name:'GHN'},
+  {id:'b0000000-0000-0000-0000-000000000002', name:'GHTK'},
+  {id:'b0000000-0000-0000-0000-000000000003', name:'Viettel Post'}
+];
+const PAYMENT_METHODS = [
+  {id:'d0000000-0000-0000-0000-000000000001', name:'COD'},
+  {id:'d0000000-0000-0000-0000-000000000002', name:'BANKING'},
+  {id:'d0000000-0000-0000-0000-000000000003', name:'MOMO'}
+];
+
+/* ---- HTTP helper ---- */
+async function http(method, path, body){
+  let res;
+  try{
+    res = await fetch(API_BASE + path, {
+      method,
+      headers:{ 'Content-Type':'application/json', 'Authorization': AUTH },
+      body: body ? JSON.stringify(body) : undefined
+    });
+  }catch(netErr){
+    throw new Error('Cannot reach server (is the app running?)');
+  }
+  if(!res.ok){
+    // ExceptionResponse: { status, errorCode, message, ... }
+    let msg = res.statusText;
+    try{
+      const err = await res.json();
+      if(err && err.errorCode) msg = '[' + err.errorCode + '] ' + (err.message || '');
+      else if(err && err.message) msg = err.message;
+    }catch(_){ /* không phải JSON -> giữ statusText */ }
+    throw new Error(msg);
+  }
+  return res.json();
+}
+
+/* ---- API layer ---- */
+const api = {
+  // 1) GET /api/v1/carts/detail -> map CartsResDto sang shape UI
+  getCartDetail: async () => {
+    const dto = await http('GET', '/api/v1/carts/detail');
+    return { items: (dto.itemsResDtoList || []).map(mapCartItem) };
+  },
+  // 2) PATCH /api/v1/carts/item/quantity/{cartItemId} - gửi absolute quantity
+  updateCartItemQuantity: async (id, quantity) => {
+    const dto = await http('PATCH', '/api/v1/carts/item/quantity/' + id, {quantity});
+    return { items: (dto.itemsResDtoList || []).map(mapCartItem) };
+  },
+  // 3) GET /api/v1/discounts/available -> tách 2 nhóm theo voucherType
+  getUserDiscounts: async () => {
+    const dto = await http('GET', '/api/v1/discounts/available');
+    const all = dto.userDiscountResDtoList || [];
+    return {
+      discountVouchers: all.filter(v => v.voucherType === 'DISCOUNT'),
+      shippingVouchers: all.filter(v => v.voucherType === 'FREE_SHIPPING')
+    };
+  },
+  // 4) GET /api/v1/pricing/summary
+  getOrderSummary: (ids, addressId, dv, sv) => {
+    const p = new URLSearchParams();
+    ids.forEach(i => p.append('cartItemIds', i));
+    if(addressId) p.set('addressId', addressId);
+    if(dv) p.set('discountVoucherId', dv);
+    if(sv) p.set('shippingVoucherId', sv);
+    return http('GET', '/api/v1/pricing/summary?' + p);
+  },
+  // 5) POST /api/v1/orders?cartItemIds=... - body CreateOrderReqDto
+  createOrder: (ids, body) => {
+    const p = new URLSearchParams();
+    ids.forEach(i => p.append('cartItemIds', i));
+    return http('POST', '/api/v1/orders?' + p, body);
+  }
+};
+
+/* Map CartItemsResDto -> UI item */
+function mapCartItem(d){
+  const stockLeft = d.quantityVariantInStock;
+  // backend trả "IN STOCK" | "LIMITED STOCK (n LEFT)" | "OUT OF STOCK"
+  const stockStatus = d.inventoryStatus === 'OUT OF STOCK' ? 'OUT_OF_STOCK'
+                    : d.inventoryStatus === 'IN STOCK'     ? 'IN_STOCK'
+                    : 'LIMITED';
+  return {
+    cartItemId: d.cartItemId,
+    name: (d.productName + ' - ' + d.VariantName).replace(' - null', ''),
+    sku: d.sku,
+    imageUrl: (d.imageUrl && d.imageUrl !== 'default-image.png') ? d.imageUrl : null,
+    quantity: d.quantity,
+    stockLeft,
+    stockStatus,
+    unitPrice: d.quantity > 0 ? d.totalPrice / d.quantity : 0
+  };
+}
+
+/* ---------------- UI ---------------- */
+const $ = id => document.getElementById(id);
+const money = n => Number(n || 0).toLocaleString('vi-VN') + ' ₫';
+const state = {items:[]};
+
+const SVG = {
+  bearing:`<svg viewBox="0 0 66 66"><rect width="66" height="66" fill="#0e0e10"/><circle cx="33" cy="33" r="26" fill="#2a2a2e"/><circle cx="33" cy="33" r="20" fill="#18181b"/><circle cx="33" cy="33" r="10" fill="#34343a"/><circle cx="33" cy="33" r="4" fill="#0e0e10"/></svg>`,
+  hub:`<svg viewBox="0 0 66 66"><rect width="66" height="66" fill="#0b0d12"/><rect x="12" y="20" width="42" height="28" rx="4" fill="#4a566b"/><rect x="16" y="24" width="34" height="14" rx="2" fill="#1b2a47"/><circle cx="22" cy="43" r="2.5" fill="#ff4a4a"/><circle cx="33" cy="43" r="2.5" fill="#ff4a4a"/><circle cx="44" cy="43" r="2.5" fill="#6aa0ff"/></svg>`,
+  cable:`<svg viewBox="0 0 66 66"><rect width="66" height="66" fill="#e97f7f"/><g transform="rotate(-35 33 33)"><rect x="-4" y="22" width="74" height="9" rx="4" fill="#9ea3ad"/><rect x="-4" y="33" width="74" height="9" rx="4" fill="#7c818b"/><rect x="-4" y="44" width="74" height="9" rx="4" fill="#b8bcc5"/></g></svg>`
+};
+const thumb = it => it.imageUrl ? `<img src="${it.imageUrl}" alt="">`
+  : it.sku.startsWith('HUB') ? SVG.hub : it.sku.startsWith('CAB') ? SVG.cable : SVG.bearing;
+
+const BADGE = {
+  IN_STOCK:() => `<span class="badge b-in"><i></i>IN STOCK</span>`,
+  LIMITED:it => `<span class="badge b-low"><i></i>LIMITED STOCK (${it.stockLeft} LEFT)</span>`,
+  OUT_OF_STOCK:() => `<span class="badge b-out"><i></i>OUT OF STOCK</span>`
+};
+const MINUS = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 12h14"/></svg>`;
+const PLUS = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>`;
+
+function renderItems(){
+  const hasOut = state.items.some(i => i.stockStatus === 'OUT_OF_STOCK');
+  $('alert').hidden = !hasOut;
+  $('items').innerHTML = state.items.map(it => {
+    const out = it.stockStatus === 'OUT_OF_STOCK';
+    return `<article class="item${out ? ' out' : ''}">
+      <div class="thumb">${thumb(it)}</div>
+      <div class="info">
+        <div class="name">${it.name}</div>
+        <div class="sku">SKU: ${it.sku}</div>
+        <div class="qty">
+          <button data-act="dec" data-id="${it.cartItemId}" aria-label="Decrease quantity" ${out || it.quantity <= 1 ? 'disabled' : ''}>${MINUS}</button>
+          <span>${it.quantity}</span>
+          <button data-act="inc" data-id="${it.cartItemId}" aria-label="Increase quantity" ${out || it.quantity >= it.stockLeft ? 'disabled' : ''}>${PLUS}</button>
+        </div>
+      </div>
+      <div class="side">
+        <div style="text-align:right"><div class="price">${money(it.unitPrice)}</div><div class="unit">UNIT PRICE</div></div>
+        ${BADGE[it.stockStatus](it)}
+      </div>
+    </article>`;
+  }).join('');
+}
+
+async function refreshSummary(){
+  if(!state.items.length){ return; }
+  const ids = state.items.map(i => i.cartItemId);
+  $('rows').classList.add('loading');
+  try{
+    const s = await api.getOrderSummary(ids, $('addr').value, $('dv').value, $('sv').value);
+    $('sSub').textContent = money(s.subTotal);
+    $('sDiscLabel').textContent = 'Discount (bulk + voucher)';
+    $('sDisc').textContent = '-' + money(s.bulkDiscount);
+    $('sShip').textContent = money(s.expeditedShipping);
+    $('sShipDisc').textContent = '-' + money(s.shippingDiscount);
+    $('sTotal').textContent = money(s.totalAmount);
+  }catch(e){ toast('Could not load order summary: ' + e.message); }
+  $('rows').classList.remove('loading');
+}
+
+function fillSelect(el, placeholder, list, key){
+  el.innerHTML = `<option value="">${placeholder}</option>` +
+    list.map(x => `<option value="${x.id}">${x[key]}</option>`).join('');
+}
+const voucherLabel = v => `${v.voucherCode} - ${v.description || 'Voucher'}`;
+
+async function loadCart(){
+  const cart = await api.getCartDetail();
+  state.items = cart.items;
+  renderItems();
+  await refreshSummary();
+}
+
+let toastTimer;
+function toast(msg){
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+/* events */
+$('items').addEventListener('click', async e => {
+  const btn = e.target.closest('button[data-act]');
+  if(!btn || btn.disabled) return;
+  const it = state.items.find(i => i.cartItemId === btn.dataset.id);
+  const next = it.quantity + (btn.dataset.act === 'inc' ? 1 : -1);
+  try{
+    const cart = await api.updateCartItemQuantity(it.cartItemId, next);
+    state.items = cart.items; renderItems(); await refreshSummary();
+  }catch(err){ toast('Could not update quantity: ' + err.message); }
+});
+
+['addr','dv','sv'].forEach(id => $(id).addEventListener('change', refreshSummary));
+
+$('reval').addEventListener('click', async () => {
+  try{ await loadCart(); toast('Inventory re-validated'); }
+  catch(e){ toast('Re-validate failed: ' + e.message); }
+});
+
+$('place').addEventListener('click', async () => {
+  if(state.items.some(i => i.stockStatus === 'OUT_OF_STOCK')){
+    const a = $('alert'); a.classList.remove('shake'); void a.offsetWidth; a.classList.add('shake');
+    a.scrollIntoView({behavior:'smooth', block:'center'});
+    return;
+  }
+  if(!$('addr').value){ toast('Please select a shipping address'); $('addr').focus(); return; }
+  const btn = $('place'); btn.disabled = true;
+  try{
+    const ids = state.items.map(i => i.cartItemId);
+    const res = await api.createOrder(ids, {
+      addressId: $('addr').value,
+      carrierId: $('carrier').value,
+      paymentMethodId: $('pm').value,
+      discountVoucherId: $('dv').value || null,
+      shippingVoucherId: $('sv').value || null
+    });
+    const orderId = (res && res.orderIds && res.orderIds.length) ? res.orderIds.join(', ') : 'OK';
+    toast('Order placed: ' + orderId);
+    await loadCart(); // reload giỏ (bug đã biết: cart không clear sau checkout)
+  }catch(e){ toast('Place order failed: ' + e.message); }
+  btn.disabled = false;
+});
+
+/* init */
+(async function init(){
+  try{
+    // carrier + payment: hardcode, không cần fetch
+    fillSelect($('carrier'), 'Select carrier', CARRIERS, 'name');
+    fillSelect($('pm'), 'Select payment method', PAYMENT_METHODS, 'name');
+    if(CARRIERS.length) $('carrier').value = CARRIERS[0].id;   // default GHN
+    if(PAYMENT_METHODS.length) $('pm').value = PAYMENT_METHODS[0].id; // default COD
+
+    // địa chỉ: hardcode tạm (chưa có API)
+    fillSelect($('addr'), 'Select address', ADDRESSES, 'label');
+    if(ADDRESSES.length) $('addr').value = ADDRESSES[0].id;
+
+    // voucher theo user đăng nhập
+    const vouchers = await api.getUserDiscounts();
+    fillSelect($('dv'), 'No discount voucher', vouchers.discountVouchers.map(v => ({id:v.voucherId, name:voucherLabel(v)})), 'name');
+    fillSelect($('sv'), 'No shipping voucher', vouchers.shippingVouchers.map(v => ({id:v.voucherId, name:voucherLabel(v)})), 'name');
+
+    await loadCart();
+  }catch(e){ toast('Failed to load: ' + e.message); }
+})();
+</script>
+</body>
+</html>
